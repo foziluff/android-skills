@@ -1,0 +1,60 @@
+// presentation/build.gradle.kts
+plugins {
+    alias(libs.plugins.android.library)
+    // Kotlin compose
+    alias(libs.plugins.kotlin.compose)
+    // KSP
+    alias(libs.plugins.ksp)
+    // Nav3
+    alias(libs.plugins.jetbrains.kotlin.serialization)
+    // Hilt
+    alias(libs.plugins.hilt.android)
+}
+
+android {
+    namespace = "{basePackage}.presentation"
+    compileSdk {
+        version = release(libs.versions.compileSdk.get().toInt()) {
+            minorApiLevel = libs.versions.minorApiLevel.get().toInt()
+        }
+    }
+
+    defaultConfig {
+        minSdk = libs.versions.minSdk.get().toInt()
+    }
+}
+
+kotlin {
+    jvmToolchain(libs.versions.jdkVersion.get().toInt())
+}
+
+dependencies {
+    // Modules
+    implementation(project(":domain"))
+    implementation(project(":core"))
+
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Nav3
+    implementation(libs.bundles.navigation3)
+    // Icons
+    implementation(libs.material.icons.extended)
+    // Hilt
+    implementation(libs.bundles.hilt)
+    ksp(libs.hilt.compiler)
+    // Paging
+    implementation(libs.bundles.paging)
+    // Appcompat
+    implementation(libs.appcompat)
+
+    // Test
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+}

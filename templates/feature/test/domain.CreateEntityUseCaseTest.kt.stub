@@ -1,0 +1,38 @@
+// domain/src/test/java/{basePackagePath}/domain/usecase/{area}/Create{Entity}UseCaseTest.kt
+package {basePackage}.domain.usecase.{area}
+
+import {basePackage}.domain.error.{Entity}Error
+import {basePackage}.domain.fake.Fake{Entity}Repository
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.domain.value.Result
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+internal class Create{Entity}UseCaseTest {
+    private val {entity}Repository = Fake{Entity}Repository()
+    private val useCase = Create{Entity}UseCase(
+        {entity}Repository = {entity}Repository,
+        validator = {Entity}InputValidator(),
+    )
+
+    @Test
+    fun `input is trimmed and blank desc becomes null`() = runTest {
+        val result = useCase(Create{Entity}UseCase.Params(title = "  Title  ", desc = "   "))
+
+        assertTrue(result is Result.Success)
+        val saved = {entity}Repository.{entities}.value.values.single()
+        assertEquals("Title", saved.title)
+        assertNull(saved.desc)
+    }
+
+    @Test
+    fun `invalid input does not write`() = runTest {
+        val result = useCase(Create{Entity}UseCase.Params(title = " ", desc = null))
+
+        assertEquals(Result.error({Entity}Error.TitleEmpty), result)
+        assertEquals(0, {entity}Repository.getCount())
+    }
+}

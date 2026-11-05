@@ -1,0 +1,34 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/{area}/Update{Entity}UseCase.kt
+package {basePackage}.domain.usecase.{area}
+
+import {basePackage}.domain.error.{Entity}Error
+import {basePackage}.domain.repository.{Entity}Repository
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.domain.value.Result
+import javax.inject.Inject
+
+class Update{Entity}UseCase @Inject constructor(
+    private val {entity}Repository: {Entity}Repository,
+    private val validator: {Entity}InputValidator,
+) {
+    data class Params(
+        val id: Long,
+        val title: String,
+        val desc: String?
+    )
+
+    suspend operator fun invoke(params: Params): Result<Unit, {Entity}Error> {
+        val clearTitle = params.title.trim()
+        val clearDesc = params.desc?.trim()?.ifBlank { null }
+
+        validator.validate(title = clearTitle, desc = clearDesc)?.let { return Result.error(it) }
+
+        {entity}Repository.update(
+            id = params.id,
+            title = clearTitle,
+            desc = clearDesc
+        )
+
+        return Result.success(Unit)
+    }
+}

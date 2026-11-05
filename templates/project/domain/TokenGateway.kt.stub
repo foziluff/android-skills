@@ -1,0 +1,10 @@
+// domain/src/main/java/{basePackagePath}/domain/gateway/TokenGateway.kt
+package {basePackage}.domain.gateway
+
+import kotlinx.coroutines.flow.Flow
+
+interface TokenGateway {
+    suspend fun saveToken(token: String)
+    fun observeToken(): Flow<String?>
+    suspend fun clearToken()
+}

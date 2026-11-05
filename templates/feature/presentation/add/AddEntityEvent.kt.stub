@@ -1,0 +1,6 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/add/Add{Entity}Event.kt
+package {basePackage}.presentation.feature.{area}.add
+
+internal sealed interface Add{Entity}Event {
+    data object Back : Add{Entity}Event
+}

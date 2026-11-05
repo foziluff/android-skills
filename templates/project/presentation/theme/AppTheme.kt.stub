@@ -1,0 +1,34 @@
+// presentation/src/main/java/{basePackagePath}/presentation/ui/theme/AppTheme.kt
+package {basePackage}.presentation.ui.theme
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
+import {basePackage}.presentation.util.noLocalProvidedFor
+
+@Immutable
+internal data class AppColorScheme(
+    val surface: Color,
+    val onSurface: Color,
+    val onSurfaceVariant: Color,
+    val link: Color,
+    val gradients: List<Pair<Color, Color>>,
+    val outline: Color,
+    val outlineVariant: Color,
+    val scrim: Color,
+    val warning: Color,
+    val staticColor: Color,
+    val surfaceContainer: Color,
+    val onPrimaryContainer: Color,
+    val tertiaryContainer: Color,
+    val secondaryContainer: Color,
+)
+
+internal val LocalAppColorScheme = staticCompositionLocalOf<AppColorScheme> {
+    noLocalProvidedFor("AppColorScheme")
+}
+
+internal val MaterialTheme.appColorScheme @Composable @ReadOnlyComposable get() = LocalAppColorScheme.current

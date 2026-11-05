@@ -1,0 +1,9 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/sync/ObserveSyncStateUseCase.kt
+package {basePackage}.domain.usecase.sync
+
+import {basePackage}.domain.repository.SyncRepository
+import javax.inject.Inject
+
+class ObserveSyncStateUseCase @Inject constructor(private val repository: SyncRepository) {
+    operator fun invoke() = repository.observeState()
+}

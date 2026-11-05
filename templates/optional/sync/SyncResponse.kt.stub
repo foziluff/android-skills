@@ -1,0 +1,11 @@
+// data/src/main/java/{basePackagePath}/data/remote/response/Sync{Entities}Response.kt
+package {basePackage}.data.remote.response
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class Sync{Entities}Response(
+    val {entities}: List<{Entity}ResponseDto>,
+    @SerialName("deleted_ids") val deletedIds: List<Long>
+)

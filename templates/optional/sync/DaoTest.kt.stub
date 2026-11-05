@@ -1,0 +1,61 @@
+// data/src/androidTest/java/{basePackagePath}/data/local/database/dao/{Entity}DaoTest.kt
+package {basePackage}.data.local.database.dao
+
+import androidx.room3.Room
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import {basePackage}.data.local.database.AppDatabase
+import {basePackage}.data.local.database.entity.{Entity}Entity
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+internal class {Entity}DaoTest {
+    private lateinit var database: AppDatabase
+    private lateinit var dao: {Entity}Dao
+
+    @Before
+    fun setUp() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        database = Room.inMemoryDatabaseBuilder<AppDatabase>(context).build()
+        dao = database.{entity}Dao()
+    }
+
+    @After
+    fun tearDown() = database.close()
+
+    @Test
+    fun deleteWithSyncWritesTombstoneOnlyForSyncedRows() = runTest {
+        val syncedId = dao.insert(entity(serverId = 10L))
+        val localId = dao.insert(entity(serverId = null))
+
+        dao.deleteWithSync(listOf(syncedId, localId))
+
+        assertEquals(listOf(10L), dao.getDeletedIds(limit = 10))
+        assertEquals(0, dao.getCount())
+    }
+
+    @Test
+    fun localUpdateMarksRowUnsynced() = runTest {
+        val id = dao.insert(entity(serverId = 10L, isSynced = true))
+
+        dao.update(id = id, title = "new", desc = null, updatedAt = 2L)
+
+        assertEquals(listOf(id), dao.getUnsynced{Entities}(limit = 10).map { it.id })
+    }
+
+    private fun entity(serverId: Long?, isSynced: Boolean = serverId != null) = {Entity}Entity(
+        id = 0L,
+        serverId = serverId,
+        serverUpdateSeq = serverId,
+        isSynced = isSynced,
+        title = "title",
+        desc = null,
+        createdAt = 1L,
+        updatedAt = 1L
+    )
+}

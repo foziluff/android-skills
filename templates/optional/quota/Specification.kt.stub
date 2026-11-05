@@ -1,0 +1,24 @@
+// domain/src/main/java/{basePackagePath}/domain/specification/CanAdd{Entity}Specification.kt
+package {basePackage}.domain.specification
+
+import {basePackage}.domain.error.{Entity}Error
+import javax.inject.Inject
+
+class CanAdd{Entity}Specification @Inject constructor() {
+    fun check(
+        currentCount: Int,
+        isPro: Boolean
+    ): {Entity}Error? {
+        return when {
+            currentCount >= LIMIT_PRO -> {Entity}Error.MaxCount
+            !isPro && currentCount >= LIMIT_FREE -> {Entity}Error.Limit
+            else -> null
+        }
+    }
+
+    companion object {
+        // DECISION: product limits for Free / Pro.
+        const val LIMIT_FREE = 10
+        const val LIMIT_PRO = 200
+    }
+}

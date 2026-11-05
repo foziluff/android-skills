@@ -1,0 +1,20 @@
+// domain/src/main/java/{basePackagePath}/domain/repository/{Entity}Repository.kt
+package {basePackage}.domain.repository
+
+import androidx.paging.PagingData
+import {basePackage}.domain.entity.{Entity}
+import kotlinx.coroutines.flow.Flow
+
+interface {Entity}Repository {
+    fun observePaged(searchQuery: String?): Flow<PagingData<{Entity}>>
+
+    fun observe({entity}Id: Long): Flow<{Entity}?>
+
+    suspend fun create(title: String, desc: String?): Long
+
+    suspend fun update(id: Long, title: String, desc: String?)
+
+    suspend fun delete({entity}Ids: List<Long>)
+
+    suspend fun getCount(): Int
+}

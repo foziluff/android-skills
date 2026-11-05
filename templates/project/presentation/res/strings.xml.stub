@@ -1,0 +1,27 @@
+<!-- presentation/src/main/res/values/strings.xml -->
+<resources>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="delete_title">Delete</string>
+    <string name="field_required">Required field</string>
+    <string name="error_unknown">Something went wrong. Please try again.</string>
+    <string name="error_connection_refused">The server is not responding. Please try later.</string>
+    <string name="error_io_connection">Connection problem. Check your network.</string>
+    <string name="error_timeout">The request timed out. Please try again.</string>
+    <string name="error_no_internet">No internet connection.</string>
+    <string name="empty_search_title">No results</string>
+    <string name="empty_search_text">Nothing matches your query. Try another one.</string>
+    <string name="empty_search_link">Clear search</string>
+
+    <string name="{entities_table}">Tasks</string>
+    <string name="new_{entity_snake}">New task</string>
+    <string name="edit_{entity_snake}">Edit task</string>
+    <string name="{entity_snake}_title">Title</string>
+    <string name="{entity_snake}_desc">Description</string>
+    <string name="search_{entities_table}_placeholder">Search tasks…</string>
+    <string name="empty_{entities_table}_title">No tasks yet</string>
+    <string name="empty_{entities_table}_text">Your tasks will appear here.</string>
+    <string name="empty_{entities_table}_link">Create the first task</string>
+    <string name="delete_{entity_snake}_message">Delete this task?</string>
+</resources>

@@ -1,0 +1,57 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/GestureAnimationContent.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+
+@Composable
+internal fun GestureAnimationContent(
+    isPressed: Boolean,
+    modifier: Modifier = Modifier,
+    boundEffect: Boolean = false,
+    scaleEffect: Float = 0.1f,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val scale = remember { Animatable(1f) }
+
+    LaunchedEffect(isPressed) {
+        scale.animateTo(
+            targetValue = if (isPressed) 1f - scaleEffect else 1f,
+            animationSpec = if (isPressed) spring() else keyframes {
+                durationMillis = 300
+                1.01f at 100
+                1.01f at 200
+            }
+        )
+    }
+
+    LaunchedEffect(boundEffect) {
+        if (!boundEffect) return@LaunchedEffect
+
+        if (scale.isRunning) scale.stop()
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = keyframes {
+                durationMillis = 600
+                1.1f at 200
+                0.96f at 400
+            }
+        )
+    }
+
+    Box(
+        modifier = modifier.graphicsLayer {
+            scaleX = scale.value
+            scaleY = scale.value
+        },
+        content = content
+    )
+}

@@ -1,0 +1,121 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppTopSnackbar.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import {basePackage}.presentation.ui.theme.sizing
+import {basePackage}.presentation.ui.theme.spacing
+import kotlin.math.roundToInt
+
+private enum class DragValue { Show, Hide }
+
+@Composable
+internal fun AppTopSnackbar(
+    snackbarData: SnackbarData,
+    modifier: Modifier = Modifier
+) {
+    val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
+            MaterialTheme.sizing.topAppBarHeight + MaterialTheme.spacing.space200
+    val density = LocalDensity.current
+    val state = remember {
+        AnchoredDraggableState(DragValue.Show)
+    }
+
+    val offsetY by remember { derivedStateOf { state.offset } }
+
+    LaunchedEffect(state.settledValue) {
+        if (state.settledValue == DragValue.Hide) snackbarData.dismiss()
+    }
+
+    Box(
+        modifier = modifier
+            .onSizeChanged { size ->
+                val offset = with(density) { -(topPadding.toPx() + size.height) }
+
+                val anchors = DraggableAnchors {
+                    DragValue.Hide at offset
+                    DragValue.Show at 0f
+                }
+                state.updateAnchors(anchors)
+            }
+            .fillMaxWidth()
+            .padding(MaterialTheme.spacing.space200)
+            .offset { IntOffset(x = 0, y = offsetY.roundToInt()) }
+            .anchoredDraggable(
+                state = state,
+                orientation = Orientation.Vertical
+            )
+            .dropShadow(
+                shape = MaterialTheme.shapes.small,
+                shadow = Shadow(radius = MaterialTheme.sizing.shadowRadius, color = MaterialTheme.colorScheme.outlineVariant)
+            )
+            .background(
+                color = MaterialTheme.colorScheme.inverseSurface,
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(
+                horizontal = MaterialTheme.spacing.space150,
+                vertical = MaterialTheme.spacing.space175
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                modifier = Modifier.size(MaterialTheme.sizing.iconNormal)
+            )
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.space100))
+            Text(
+                text = snackbarData.visuals.message,
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+            )
+            snackbarData.visuals.actionLabel?.let { actionLabel ->
+                Spacer(modifier = Modifier.width(MaterialTheme.spacing.space50))
+                Text(
+                    text = actionLabel,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}

@@ -1,0 +1,39 @@
+// presentation/src/main/java/{basePackagePath}/presentation/util/UiText.kt
+package {basePackage}.presentation.util
+
+import android.content.Context
+import androidx.annotation.PluralsRes
+import androidx.annotation.StringRes
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+
+internal sealed interface UiText {
+    data class DynamicString(val value: String) : UiText
+
+    class StringResource(
+        @StringRes val id: Int,
+        vararg val formatArgs: Any
+    ) : UiText
+
+    class PluralResource(
+        @PluralsRes val id: Int,
+        val count: Int,
+        vararg val formatArgs: Any
+    ) : UiText
+
+    @Composable
+    @ReadOnlyComposable
+    fun asString(): String = when (this) {
+        is DynamicString -> value
+        is StringResource -> stringResource(id, *formatArgs)
+        is PluralResource -> pluralStringResource(id, count, *formatArgs)
+    }
+
+    fun asString(context: Context): String = when (this) {
+        is DynamicString -> value
+        is StringResource -> context.getString(id, *formatArgs)
+        is PluralResource -> context.resources.getQuantityString(id, count, *formatArgs)
+    }
+}

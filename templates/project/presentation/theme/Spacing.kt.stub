@@ -1,0 +1,39 @@
+// presentation/src/main/java/{basePackagePath}/presentation/ui/theme/Spacing.kt
+package {basePackage}.presentation.ui.theme
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import {basePackage}.presentation.util.noLocalProvidedFor
+
+@Immutable
+internal data class Spacing(
+    val space0: Dp = 0.dp,
+    val space25: Dp = 2.dp,
+    val space50: Dp = 4.dp,
+    val space75: Dp = 6.dp,
+    val space100: Dp = 8.dp,
+    val space125: Dp = 10.dp,
+    val space150: Dp = 12.dp,
+    val space175: Dp = 14.dp,
+    val space200: Dp = 16.dp,
+    val space250: Dp = 20.dp,
+    val space300: Dp = 24.dp,
+    val space400: Dp = 32.dp,
+    val space450: Dp = 36.dp,
+    val space500: Dp = 40.dp,
+    val space600: Dp = 48.dp,
+    val space700: Dp = 56.dp,
+    val space800: Dp = 64.dp,
+    val space900: Dp = 72.dp,
+)
+
+internal val LocalSpacing = staticCompositionLocalOf<Spacing> {
+    noLocalProvidedFor("Spacing")
+}
+
+internal val MaterialTheme.spacing @Composable @ReadOnlyComposable get() = LocalSpacing.current

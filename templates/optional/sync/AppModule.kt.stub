@@ -1,0 +1,28 @@
+// app/src/main/java/{basePackagePath}/{appName}/di/AppModule.kt
+package {basePackage}.{appName}.di
+
+import android.content.Context
+import androidx.work.WorkManager
+import {basePackage}.{appName}.platform.SyncRepositoryImpl
+import {basePackage}.domain.repository.SyncRepository
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal interface AppModule {
+    @[Binds Singleton]
+    fun bindSyncRepository(impl: SyncRepositoryImpl): SyncRepository
+
+    companion object {
+        @[Provides Singleton]
+        fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+            return WorkManager.getInstance(context)
+        }
+    }
+}

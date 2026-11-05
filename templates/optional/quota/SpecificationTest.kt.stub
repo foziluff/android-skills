@@ -1,0 +1,37 @@
+// domain/src/test/java/{basePackagePath}/domain/specification/CanAdd{Entity}SpecificationTest.kt   [proposal]
+package {basePackage}.domain.specification
+
+import {basePackage}.domain.error.{Entity}Error
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+
+internal class CanAdd{Entity}SpecificationTest {
+    private val specification = CanAdd{Entity}Specification()
+
+    @Test
+    fun `free user below the free limit can add`() {
+        assertNull(specification.check(currentCount = CanAdd{Entity}Specification.LIMIT_FREE - 1, isPro = false))
+    }
+
+    @Test
+    fun `free user at the free limit gets Limit`() {
+        assertEquals(
+            {Entity}Error.Limit,
+            specification.check(currentCount = CanAdd{Entity}Specification.LIMIT_FREE, isPro = false)
+        )
+    }
+
+    @Test
+    fun `pro user at the free limit can add`() {
+        assertNull(specification.check(currentCount = CanAdd{Entity}Specification.LIMIT_FREE, isPro = true))
+    }
+
+    @Test
+    fun `anyone at the pro limit gets MaxCount`() {
+        assertEquals(
+            {Entity}Error.MaxCount,
+            specification.check(currentCount = CanAdd{Entity}Specification.LIMIT_PRO, isPro = true)
+        )
+    }
+}

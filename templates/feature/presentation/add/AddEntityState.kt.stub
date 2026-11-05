@@ -1,0 +1,14 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/add/Add{Entity}State.kt
+package {basePackage}.presentation.feature.{area}.add
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.text.input.TextFieldValue
+import {basePackage}.presentation.util.UiText
+
+@Immutable
+internal data class Add{Entity}State(
+    val titleValue: TextFieldValue = TextFieldValue(),
+    val descValue: TextFieldValue = TextFieldValue(),
+    val titleErrorUiText: UiText? = null,
+    val isProcessing: Boolean = false,
+)

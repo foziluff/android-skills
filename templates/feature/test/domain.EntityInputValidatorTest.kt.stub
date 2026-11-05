@@ -1,0 +1,37 @@
+// domain/src/test/java/{basePackagePath}/domain/validation/{Entity}InputValidatorTest.kt
+package {basePackage}.domain.validation
+
+import {basePackage}.domain.error.{Entity}Error
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+
+internal class {Entity}InputValidatorTest {
+    private val validator = {Entity}InputValidator()
+
+    @Test
+    fun `blank title returns TitleEmpty`() {
+        assertEquals({Entity}Error.TitleEmpty, validator.validate(title = " ", desc = null))
+    }
+
+    @Test
+    fun `title at max length is valid`() {
+        val title = "a".repeat({Entity}InputValidator.MAX_TITLE_LENGTH)
+
+        assertNull(validator.validate(title = title, desc = null))
+    }
+
+    @Test
+    fun `title over max length returns TitleMaxLength`() {
+        val title = "a".repeat({Entity}InputValidator.MAX_TITLE_LENGTH + 1)
+
+        assertEquals({Entity}Error.TitleMaxLength, validator.validate(title = title, desc = null))
+    }
+
+    @Test
+    fun `desc over max length returns DescMaxLength`() {
+        val desc = "a".repeat({Entity}InputValidator.MAX_DESC_LENGTH + 1)
+
+        assertEquals({Entity}Error.DescMaxLength, validator.validate(title = "title", desc = desc))
+    }
+}

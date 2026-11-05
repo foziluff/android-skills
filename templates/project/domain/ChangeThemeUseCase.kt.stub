@@ -1,0 +1,12 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/preferences/ChangeThemeUseCase.kt
+package {basePackage}.domain.usecase.preferences
+
+import {basePackage}.domain.repository.AppSettingsRepository
+import {basePackage}.domain.value.AppTheme
+import javax.inject.Inject
+
+class ChangeThemeUseCase @Inject constructor(
+    private val appSettingsRepository: AppSettingsRepository
+) {
+    suspend operator fun invoke(theme: AppTheme) = appSettingsRepository.updateTheme(theme)
+}

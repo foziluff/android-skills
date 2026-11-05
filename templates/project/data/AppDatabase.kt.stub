@@ -1,0 +1,24 @@
+// data/src/main/java/{basePackagePath}/data/local/database/AppDatabase.kt
+package {basePackage}.data.local.database
+
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
+import {basePackage}.data.local.database.dao.{Entity}Dao
+import {basePackage}.data.local.database.entity.{Entity}Entity
+import {basePackage}.data.local.database.entity.{Entity}FtsEntity
+
+@Database(
+    entities = [
+        {Entity}Entity::class,
+        {Entity}FtsEntity::class,
+    ],
+    version = 1,
+    exportSchema = true,
+)
+internal abstract class AppDatabase : RoomDatabase() {
+    abstract fun {entity}Dao(): {Entity}Dao
+
+    companion object {
+        const val DB_NAME = "{appName}.db"
+    }
+}

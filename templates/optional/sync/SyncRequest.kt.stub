@@ -1,0 +1,13 @@
+// data/src/main/java/{basePackagePath}/data/remote/request/Sync{Entities}Request.kt
+package {basePackage}.data.remote.request
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class Sync{Entities}Request(
+    val {entities}: List<{Entity}RequestDto>,
+    @SerialName("deleted_ids") val deletedIds: List<Long>,
+    @SerialName("confirmed_deleted_ids") val confirmedDeletedIds: List<Long>,
+    @SerialName("client_update_seq") val clientUpdateSeq: Long
+)

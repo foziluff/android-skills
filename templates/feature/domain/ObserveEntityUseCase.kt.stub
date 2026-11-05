@@ -1,0 +1,9 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/{area}/Observe{Entity}UseCase.kt
+package {basePackage}.domain.usecase.{area}
+
+import {basePackage}.domain.repository.{Entity}Repository
+import javax.inject.Inject
+
+class Observe{Entity}UseCase @Inject constructor(private val {entity}Repository: {Entity}Repository) {
+    operator fun invoke({entity}Id: Long) = {entity}Repository.observe({entity}Id)
+}

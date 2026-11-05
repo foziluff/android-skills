@@ -1,0 +1,12 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/main/MainState.kt
+package {basePackage}.presentation.feature.main
+
+import androidx.compose.runtime.Immutable
+import {basePackage}.domain.value.AppSettings
+import {basePackage}.presentation.mapper.toUi
+import {basePackage}.presentation.model.AppSettingsUi
+
+@Immutable
+internal data class MainState(
+    val appSettings: AppSettingsUi = AppSettings.Default.toUi(),
+)

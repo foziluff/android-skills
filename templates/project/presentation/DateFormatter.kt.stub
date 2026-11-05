@@ -1,0 +1,78 @@
+// presentation/src/main/java/{basePackagePath}/presentation/util/DateFormatter.kt
+package {basePackage}.presentation.util
+
+import android.text.format.DateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicReference
+
+private data class CachedFormatters(
+    val time: DateTimeFormatter,
+    val dayMonth: DateTimeFormatter,
+    val full: DateTimeFormatter,
+    val dateTime: DateTimeFormatter
+)
+
+private object FormatterCache {
+    private val cache = AtomicReference<CachedFormatters>()
+    private var cachedLocale: Locale? = null
+
+    fun get(locale: Locale): CachedFormatters {
+        val current = cache.get()
+        if (current != null && cachedLocale == locale) return current
+
+        cachedLocale = locale
+
+        val newFormatters = createFormatters(locale)
+        cache.set(newFormatters)
+        return newFormatters
+    }
+
+    private fun createFormatters(locale: Locale): CachedFormatters {
+        val bestPattern = DateFormat.getBestDateTimePattern(locale, "MMMd")
+        return CachedFormatters(
+            time = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale),
+            dayMonth = DateTimeFormatter.ofPattern(bestPattern, locale),
+            full = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale),
+            dateTime = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale)
+        )
+    }
+}
+
+internal fun Instant.toFormatDateTime(): String {
+    val formatters = FormatterCache.get(Locale.getDefault())
+
+    val now = Instant.now()
+    val zoneId = ZoneId.systemDefault()
+
+    val targetZoned = atZone(zoneId)
+    val nowZoned = now.atZone(zoneId)
+
+    return when {
+        targetZoned.year != nowZoned.year -> formatters.full.format(targetZoned)
+        targetZoned.dayOfYear != nowZoned.dayOfYear -> formatters.dayMonth.format(targetZoned)
+        else -> formatters.time.format(targetZoned)
+    }
+}
+
+internal fun Instant.toDateTime(): String {
+    val formatters = FormatterCache.get(Locale.getDefault())
+    val targetZoned = atZone(ZoneId.systemDefault())
+    return formatters.dateTime.format(targetZoned)
+}
+
+internal fun Instant.toDate(): String {
+    val formatters = FormatterCache.get(Locale.getDefault())
+
+    val now = Instant.now()
+    val zoneId = ZoneId.systemDefault()
+
+    val targetZoned = atZone(ZoneId.systemDefault())
+    val nowZoned = now.atZone(zoneId)
+
+    return if (targetZoned.year != nowZoned.year) formatters.full.format(targetZoned) else
+        formatters.dayMonth.format(targetZoned)
+}

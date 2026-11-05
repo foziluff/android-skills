@@ -1,0 +1,43 @@
+// domain/src/test/java/{basePackagePath}/domain/fake/Fake{Entity}Repository.kt
+package {basePackage}.domain.fake
+
+import androidx.paging.PagingData
+import {basePackage}.domain.entity.{Entity}
+import {basePackage}.domain.repository.{Entity}Repository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import java.time.Instant
+
+internal class Fake{Entity}Repository : {Entity}Repository {
+    val {entities} = MutableStateFlow<Map<Long, {Entity}>>(emptyMap())
+    private var nextId = 1L
+
+    override fun observePaged(searchQuery: String?): Flow<PagingData<{Entity}>> =
+        {entities}.map { PagingData.from(it.values.toList()) }
+
+    override fun observe({entity}Id: Long): Flow<{Entity}?> = {entities}.map { it[{entity}Id] }
+
+    override suspend fun create(title: String, desc: String?): Long {
+        val id = nextId++
+        {entities}.value += id to {Entity}(
+            id = id,
+            title = title,
+            desc = desc,
+            createdAt = Instant.EPOCH,
+            updatedAt = Instant.EPOCH
+        )
+        return id
+    }
+
+    override suspend fun update(id: Long, title: String, desc: String?) {
+        val current = {entities}.value[id] ?: return
+        {entities}.value += id to current.copy(title = title, desc = desc)
+    }
+
+    override suspend fun delete({entity}Ids: List<Long>) {
+        {entities}.value -= {entity}Ids.toSet()
+    }
+
+    override suspend fun getCount(): Int = {entities}.value.size
+}

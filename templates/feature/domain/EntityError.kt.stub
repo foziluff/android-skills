@@ -1,0 +1,9 @@
+// domain/src/main/java/{basePackagePath}/domain/error/{Entity}Error.kt
+package {basePackage}.domain.error
+
+sealed interface {Entity}Error : RootError {
+    data object ListEmpty : {Entity}Error
+    data object TitleEmpty : {Entity}Error
+    data object TitleMaxLength : {Entity}Error
+    data object DescMaxLength : {Entity}Error
+}

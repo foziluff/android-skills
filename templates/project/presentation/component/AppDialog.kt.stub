@@ -1,0 +1,75 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppDialog.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.Dialog
+import {basePackage}.presentation.R
+import {basePackage}.presentation.ui.theme.appColorScheme
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun AppDialog(
+    title: String,
+    buttonText: String,
+    onDismiss: () -> Unit,
+    onClick: () -> Unit,
+    buttonColor: Color = MaterialTheme.appColorScheme.onSurface,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        ) {
+            Spacer(Modifier.height(MaterialTheme.spacing.space300))
+            Text(
+                text = title,
+                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.space300),
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(Modifier.height(MaterialTheme.spacing.space300))
+            content()
+            Spacer(Modifier.height(MaterialTheme.spacing.space200))
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = MaterialTheme.spacing.space300)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                AppTextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss
+                )
+                Spacer(Modifier.width(MaterialTheme.spacing.space200))
+                AppTextButton(
+                    text = buttonText,
+                    contentColor = buttonColor,
+                    onClick = onClick
+                )
+            }
+            Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        }
+    }
+}

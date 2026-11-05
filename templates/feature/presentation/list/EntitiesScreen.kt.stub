@@ -1,0 +1,179 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/list/{Entities}Screen.kt
+package {basePackage}.presentation.feature.{area}.list
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import {basePackage}.presentation.R
+import {basePackage}.presentation.component.AppBar
+import {basePackage}.presentation.component.AppBarSearch
+import {basePackage}.presentation.component.AppIconButton
+import {basePackage}.presentation.component.MessageContent
+import {basePackage}.presentation.model.AppBarType
+import {basePackage}.presentation.model.{Entity}Ui
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun {Entities}Screen(
+    processEvent: ({Entities}Event) -> Unit,
+    backHandlerEnabled: Boolean,
+    modifier: Modifier = Modifier,
+    viewModel: {Entities}ViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val {entities} = viewModel.{entities}.collectAsLazyPagingItems()
+
+    val isMessageContents by remember {
+        derivedStateOf {
+            {entities}.loadState.refresh is LoadState.NotLoading && {entities}.itemCount == 0
+        }
+    }
+
+    BackHandler(backHandlerEnabled && state.appBarType != AppBarType.DEFAULT) {
+        viewModel.processIntent({Entities}Intent.AppBarTypeChanged(AppBarType.DEFAULT))
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            when (state.appBarType) {
+                AppBarType.SEARCH -> AppBarSearch(
+                    value = state.searchQuery,
+                    onValueChange = { viewModel.processIntent({Entities}Intent.SearchQueryChanged(it)) },
+                    onBack = { viewModel.processIntent({Entities}Intent.AppBarTypeChanged(AppBarType.DEFAULT)) },
+                    placeholder = stringResource(R.string.search_{entities_table}_placeholder)
+                )
+
+                AppBarType.DEFAULT, AppBarType.SELECTED -> AppBar(
+                    title = stringResource(R.string.{entities_table}),
+                    actions = {
+                        AppIconButton(
+                            imageVector = Icons.Outlined.Search,
+                            onClick = {
+                                viewModel.processIntent({Entities}Intent.AppBarTypeChanged(AppBarType.SEARCH))
+                            }
+                        )
+                    }
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { processEvent({Entities}Event.Add{Entity}) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.new_{entity_snake})
+                )
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(vertical = MaterialTheme.spacing.space100)
+        ) {
+            if (isMessageContents) item("message_content") {
+                MessageContent(
+                    title = stringResource(
+                        if (state.isSearching) R.string.empty_search_title else R.string.empty_{entities_table}_title
+                    ),
+                    text = stringResource(
+                        if (state.isSearching) R.string.empty_search_text else R.string.empty_{entities_table}_text
+                    ),
+                    linkText = stringResource(
+                        if (state.isSearching) R.string.empty_search_link else R.string.empty_{entities_table}_link
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillParentMaxHeight(EMPTY_STATE_HEIGHT_FRACTION)
+                        .padding(horizontal = MaterialTheme.spacing.space200),
+                    onLinkClick = {
+                        if (state.isSearching) {
+                            viewModel.processIntent({Entities}Intent.AppBarTypeChanged(AppBarType.DEFAULT))
+                        } else {
+                            processEvent({Entities}Event.Add{Entity})
+                        }
+                    }
+                )
+            }
+            items(
+                count = {entities}.itemCount,
+                key = {entities}.itemKey { it.id },
+                contentType = { "{entity_snake}" }
+            ) { index ->
+                val {entity} = {entities}[index]
+
+                if ({entity} != null) {
+                    {Entity}Row(
+                        {entity} = {entity},
+                        onClick = { processEvent({Entities}Event.Edit{Entity}({entity}.id)) },
+                        modifier = Modifier
+                            .animateItem()
+                            .padding(horizontal = MaterialTheme.spacing.space200)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun {Entity}Row(
+    {entity}: {Entity}Ui,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = MaterialTheme.spacing.space150)
+    ) {
+        Text(
+            text = {entity}.title,
+            style = MaterialTheme.typography.bodyLarge
+        )
+        {entity}.desc?.let { desc ->
+            Text(
+                text = desc,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        Text(
+            text = {entity}.updatedAt,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+private const val EMPTY_STATE_HEIGHT_FRACTION = 0.8f

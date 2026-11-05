@@ -1,0 +1,46 @@
+// presentation/src/main/java/{basePackagePath}/presentation/navigation/Extensions.kt
+package {basePackage}.presentation.navigation
+
+import androidx.navigation3.runtime.NavBackStack
+
+private var lastNavTime = 0L
+private const val NAV_DEBOUNCE = DEFAULT_TRANSITION_DURATION_MILLISECOND
+
+internal fun NavBackStack<Route>.navigateSingleton(screen: Route) {
+    val now = System.currentTimeMillis()
+    if (now - lastNavTime < NAV_DEBOUNCE || screen == lastOrNull()) return
+    lastNavTime = now
+    add(screen)
+}
+
+internal fun NavBackStack<Route>.popBackStack() = if (size > 1) {
+    removeLastOrNull()
+    true
+} else {
+    false
+}
+
+internal fun NavBackStack<Route>.currentScreen() = lastOrNull()
+
+internal fun NavBackStack<Route>.navigateTopLevel(screen: TopLevelScreen) {
+    val now = System.currentTimeMillis()
+    if (now - lastNavTime < NAV_DEBOUNCE / 4 || screen == lastOrNull()) return
+
+    lastNavTime = now
+
+    remove(screen)
+    remove(TopLevelScreen.startTopLevelScreen)
+
+    add(TopLevelScreen.startTopLevelScreen)
+    if (screen !== TopLevelScreen.startTopLevelScreen) add(screen)
+}
+
+internal inline fun <reified T : Route> MutableList<Route>.popBackStackTo(
+    inclusive: Boolean = true
+) {
+    val index = indexOfLast { it is T }
+    if (index != -1) {
+        val targetIndex = if (inclusive) index else index + 1
+        subList(targetIndex, size).clear()
+    }
+}

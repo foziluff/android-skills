@@ -1,0 +1,13 @@
+// data/src/main/java/{basePackagePath}/data/local/database/entity/{Entity}FtsEntity.kt
+package {basePackage}.data.local.database.entity
+
+import androidx.room3.Entity
+import androidx.room3.Fts4
+import androidx.room3.FtsOptions
+
+@Fts4(contentEntity = {Entity}Entity::class, tokenizer = FtsOptions.TOKENIZER_UNICODE61)
+@Entity("{entities_table}_fts")
+internal data class {Entity}FtsEntity(
+    val title: String,
+    val desc: String?
+)

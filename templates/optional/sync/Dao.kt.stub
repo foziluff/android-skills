@@ -1,0 +1,111 @@
+// data/src/main/java/{basePackagePath}/data/local/database/dao/{Entity}Dao.kt
+package {basePackage}.data.local.database.dao
+
+import androidx.paging.PagingSource
+import androidx.room3.Dao
+import androidx.room3.DaoReturnTypeConverters
+import androidx.room3.Insert
+import androidx.room3.Query
+import androidx.room3.RawQuery
+import androidx.room3.RoomRawQuery
+import androidx.room3.Transaction
+import androidx.room3.Update
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
+import {basePackage}.data.local.database.entity.{Entity}Entity
+import {basePackage}.data.remote.response.{Entity}ResponseDto
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
+internal interface {Entity}Dao {
+    @RawQuery(observedEntities = [{Entity}Entity::class])
+    fun pagingSource(query: RoomRawQuery): PagingSource<Int, {Entity}Entity>
+
+    @Query("SELECT * FROM {entities_table} WHERE id = :id")
+    fun loadById(id: Long): Flow<{Entity}Entity?>
+
+    @Query("SELECT COUNT(*) FROM {entities_table}")
+    suspend fun getCount(): Int
+
+    @Insert
+    suspend fun insert({entity}: {Entity}Entity): Long
+
+    @Update
+    suspend fun update{Entities}({entities}: List<{Entity}Entity>)
+
+    @Query(
+        """
+        UPDATE {entities_table}
+        SET
+            title = :title,
+            `desc` = :desc,
+            updated_at = :updatedAt,
+            is_synced = 0
+        WHERE id = :id
+    """
+    )
+    suspend fun update(id: Long, title: String, desc: String?, updatedAt: Long)
+
+    @Query("DELETE FROM {entities_table} WHERE id IN (:ids)")
+    suspend fun delete(ids: List<Long>)
+
+    @Query("DELETE FROM {entities_table}")
+    suspend fun clear()
+
+    @Query("DELETE FROM sqlite_sequence WHERE name = '{entities_table}'")
+    suspend fun resetAutoIncrement()
+
+    @Query(
+        """
+        INSERT OR IGNORE INTO {entity_snake}_deletes (server_id)
+        SELECT server_id FROM {entities_table}
+        WHERE id IN (:ids) AND server_id IS NOT NULL
+    """
+    )
+    suspend fun insertDeletedIdsFrom{Entities}(ids: List<Long>)
+
+    @Transaction
+    suspend fun deleteWithSync(ids: List<Long>) {
+        insertDeletedIdsFrom{Entities}(ids)
+        delete(ids)
+    }
+
+    @Query("SELECT * FROM {entities_table} WHERE is_synced = 0 LIMIT :limit")
+    suspend fun getUnsynced{Entities}(limit: Int): List<{Entity}Entity>
+
+    @Query("SELECT server_id FROM {entity_snake}_deletes LIMIT :limit")
+    suspend fun getDeletedIds(limit: Int): List<Long>
+
+    @Query("SELECT COALESCE(MAX(server_update_seq), 0) FROM {entities_table}")
+    suspend fun getMaxUpdateSeq(): Long
+
+    @Query("DELETE FROM {entity_snake}_deletes WHERE server_id IN (:ids)")
+    suspend fun removeDeletedIds(ids: List<Long>)
+
+    @Query("DELETE FROM {entities_table} WHERE server_id IN (:serverIds)")
+    suspend fun deleteByServerIds(serverIds: List<Long>)
+
+    @Query("SELECT id FROM {entities_table} WHERE id = :id LIMIT 1")
+    suspend fun getIdById(id: Long): Long?
+
+    @Query("SELECT id FROM {entities_table} WHERE server_id = :serverId LIMIT 1")
+    suspend fun getIdByServerId(serverId: Long): Long?
+
+    @Transaction
+    suspend fun upsertFromServer({entity}Dto: {Entity}ResponseDto) {
+        val existingId = {entity}Dto.localId?.let { getIdById(it) } ?: getIdByServerId({entity}Dto.serverId)
+
+        val {entity} = {Entity}Entity(
+            id = existingId ?: 0L,
+            serverId = {entity}Dto.serverId,
+            serverUpdateSeq = {entity}Dto.updateSeq,
+            isSynced = true,
+            title = {entity}Dto.title,
+            desc = {entity}Dto.desc,
+            createdAt = {entity}Dto.localCreatedAt,
+            updatedAt = {entity}Dto.localUpdatedAt
+        )
+
+        if ({entity}.id == 0L) insert({entity}) else update{Entities}(listOf({entity}))
+    }
+}

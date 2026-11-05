@@ -1,0 +1,11 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/list/{Entities}Intent.kt
+package {basePackage}.presentation.feature.{area}.list
+
+import androidx.compose.ui.text.input.TextFieldValue
+import {basePackage}.presentation.model.AppBarType
+
+internal sealed interface {Entities}Intent {
+    data class AppBarTypeChanged(val appBarType: AppBarType) : {Entities}Intent
+
+    data class SearchQueryChanged(val searchQuery: TextFieldValue) : {Entities}Intent
+}

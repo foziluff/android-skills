@@ -1,0 +1,25 @@
+// presentation/src/main/java/{basePackagePath}/presentation/navigation/Screen.kt
+package {basePackage}.presentation.navigation
+
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal sealed interface Route : NavKey
+
+internal sealed interface TopLevelScreen : Route {
+    @Serializable
+    data object {Entities} : TopLevelScreen
+
+    companion object {
+        val startTopLevelScreen = {Entities}
+    }
+}
+
+internal sealed interface Screen : Route {
+    @Serializable
+    data object Add{Entity} : Screen
+
+    @Serializable
+    data class Edit{Entity}(val {entity}Id: Long) : Screen
+}

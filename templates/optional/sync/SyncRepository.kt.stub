@@ -1,0 +1,11 @@
+// domain/src/main/java/{basePackagePath}/domain/repository/SyncRepository.kt
+package {basePackage}.domain.repository
+
+import {basePackage}.domain.value.SyncState
+import kotlinx.coroutines.flow.Flow
+
+interface SyncRepository {
+    fun observeState(): Flow<SyncState>
+
+    suspend fun sync()
+}

@@ -1,0 +1,5 @@
+// Add to data/src/main/java/{basePackagePath}/data/remote/ApiService.kt
+// (there is no separate RemoteDataSource layer: ApiService + safeApiCall is the remote data source)
+
+    @POST("sync/{entities-url}")
+    suspend fun sync{Entities}(@Body request: Sync{Entities}Request): Response<Sync{Entities}Response>

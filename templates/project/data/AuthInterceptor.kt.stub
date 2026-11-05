@@ -1,0 +1,27 @@
+// data/src/main/java/{basePackagePath}/data/remote/interceptor/AuthInterceptor.kt
+package {basePackage}.data.remote.interceptor
+
+import {basePackage}.domain.gateway.TokenGateway
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
+import okhttp3.Response
+import javax.inject.Inject
+
+internal class AuthInterceptor @Inject constructor(
+    private val tokenGateway: TokenGateway
+) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val token = runBlocking { tokenGateway.observeToken().firstOrNull() }
+
+        val request = chain.request().newBuilder()
+            .header("Accept", "application/json")
+            .apply {
+                if (!token.isNullOrBlank()) {
+                    addHeader("Authorization", "Bearer $token")
+                }
+            }.build()
+
+        return chain.proceed(request)
+    }
+}

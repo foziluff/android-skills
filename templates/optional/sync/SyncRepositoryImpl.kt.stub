@@ -1,0 +1,51 @@
+// app/src/main/java/{basePackagePath}/{appName}/platform/SyncRepositoryImpl.kt
+package {basePackage}.{appName}.platform
+
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import {basePackage}.{appName}.model.SyncState
+import {basePackage}.{appName}.worker.SyncWorker
+import {basePackage}.domain.repository.SyncRepository
+import {basePackage}.domain.value.SyncType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import javax.inject.Inject
+import {basePackage}.domain.value.SyncState as DomainSyncState
+
+internal class SyncRepositoryImpl @Inject constructor(
+    private val workManager: WorkManager,
+    private val dataStore: DataStore<Preferences>
+) : SyncRepository {
+
+    override fun observeState(): Flow<DomainSyncState> = workManager
+        .getWorkInfosForUniqueWorkFlow(SyncWorker.WORK_NAME)
+        .map { workInfos ->
+            val workInfo = workInfos.firstOrNull()
+
+            workInfo?.outputData?.getString(SyncWorker.KEY_SYNC_STATE)?.let {
+                val state = Json.decodeFromString(SyncState.serializer(), it)
+                return@map DomainSyncState(commonState = state.commonState)
+            }
+
+            when (workInfo?.state) {
+                WorkInfo.State.SUCCEEDED -> DomainSyncState(commonState = SyncType.SUCCESS)
+
+                WorkInfo.State.FAILED,
+                WorkInfo.State.BLOCKED,
+                WorkInfo.State.CANCELLED -> DomainSyncState(commonState = SyncType.ERROR)
+
+                WorkInfo.State.ENQUEUED,
+                WorkInfo.State.RUNNING,
+                null -> DomainSyncState(commonState = SyncType.LOADING)
+            }
+        }
+        .distinctUntilChanged()
+
+    override suspend fun sync() {
+        SyncWorker.enqueue(dataStore, workManager)
+    }
+}

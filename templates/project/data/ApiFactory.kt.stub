@@ -1,0 +1,8 @@
+// data/src/main/java/{basePackagePath}/data/remote/ApiFactory.kt
+package {basePackage}.data.remote
+
+import {basePackage}.data.BuildConfig
+
+internal object ApiFactory {
+    const val BASE_URL = BuildConfig.BASE_URL
+}

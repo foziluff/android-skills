@@ -1,0 +1,39 @@
+// data/src/main/java/{basePackagePath}/data/platform/TokenGatewayImpl.kt
+package {basePackage}.data.platform
+
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.byteArrayPreferencesKey
+import androidx.datastore.preferences.core.edit
+import {basePackage}.data.platform.crypto.CryptoManager
+import {basePackage}.domain.gateway.TokenGateway
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+internal class TokenGatewayImpl @Inject constructor(
+    private val dataStore: DataStore<Preferences>,
+    private val cryptoManager: CryptoManager
+) : TokenGateway {
+    private val tokenKey = byteArrayPreferencesKey("access_token")
+
+    override suspend fun saveToken(token: String) {
+        val encryptedToken = cryptoManager.encrypt(token)
+        dataStore.edit { preferences ->
+            preferences[tokenKey] = encryptedToken
+        }
+    }
+
+    override fun observeToken(): Flow<String?> = dataStore.data.map { preferences ->
+        preferences[tokenKey]?.let { encryptedToken ->
+            cryptoManager.decrypt(encryptedToken)
+        }
+    }.distinctUntilChanged()
+
+    override suspend fun clearToken() {
+        dataStore.edit { preferences ->
+            preferences.remove(tokenKey)
+        }
+    }
+}

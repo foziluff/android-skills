@@ -1,0 +1,19 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/{area}/Delete{Entities}UseCase.kt
+package {basePackage}.domain.usecase.{area}
+
+import {basePackage}.domain.error.{Entity}Error
+import {basePackage}.domain.repository.{Entity}Repository
+import {basePackage}.domain.value.Result
+import javax.inject.Inject
+
+class Delete{Entities}UseCase @Inject constructor(
+    private val {entity}Repository: {Entity}Repository,
+) {
+    suspend operator fun invoke({entity}Ids: List<Long>): Result<Unit, {Entity}Error> {
+        if ({entity}Ids.isEmpty()) return Result.error({Entity}Error.ListEmpty)
+
+        {entity}Repository.delete({entity}Ids)
+
+        return Result.success(Unit)
+    }
+}

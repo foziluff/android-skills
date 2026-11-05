@@ -1,0 +1,59 @@
+// presentation/src/main/java/{basePackagePath}/presentation/ui/theme/Color.kt
+package {basePackage}.presentation.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+internal val White = Color(0xFFFFFFFF)
+
+internal val Black = Color(0xFF000000)
+
+internal val Gray5 = Color(0xFF091014)
+internal val Gray10 = Color(0xFF12181d)
+internal val Gray20 = Color(0xFF24272c)
+internal val Gray30 = Color(0xFF26343d)
+internal val Gray40 = Color(0xFF5b6366)
+internal val Gray50 = Color(0xFF6d7578)
+internal val Gray60 = Color(0xFF8d9598)
+internal val Gray98 = Color(0xFFecedf2)
+internal val Gray99 = Color(0xFFf7f8fa)
+
+internal val Green20 = Color(0xFF0f3428)
+internal val Green40 = Color(0xFF13613f)
+internal val Green50 = Color(0xFF128755)
+internal val Green60 = Color(0xFF15aa61)
+internal val Green70 = Color(0xFF23c062)
+internal val Green80 = Color(0xFF1ec162)
+internal val Green95 = Color(0xFFd9fdd2)
+internal val Green98 = Color(0xFFe7e9e8)
+
+internal val Red50 = Color(0xFFe90038)
+internal val Red60 = Color(0xFFfb4f61)
+
+internal val Blue50 = Color(0xFF0462cd)
+internal val Blue60 = Color(0xFF53bde9)
+
+internal val WarmGray95 = Color(0xFFf6f5f3)
+
+internal val Yellow90 = Color(0xFFFFF8DC)
+internal val Yellow60 = Color(0xFFffd179)
+internal val Yellow40 = Color(0xFFfeb938)
+
+internal val GradientBlueStart = Color(0xFF5cc8e3)
+internal val GradientBlueEnd = Color(0xFF369bd5)
+
+internal val GradientRedOrangeStart = Color(0xFFfd835c)
+internal val GradientRedOrangeEnd = Color(0xFFd65247)
+
+internal val GradientPurpleStart = Color(0xFFb593fa)
+internal val GradientPurpleEnd = Color(0xFF6d62df)
+
+internal val GradientPinkStart = Color(0xFFfe88ab)
+internal val GradientPinkEnd = Color(0xFFda5675)
+
+internal val GradientGreenStart = Color(0xFF9ad065)
+internal val GradientGreenEnd = Color(0xFF4abb42)
+
+internal val GradientYellowStart = Color(0xFFffb95a)
+internal val GradientYellowEnd = Color(0xFFf68235)
+
+internal val Teal40 = Color(0xFF008080)

@@ -1,0 +1,14 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/list/{Entities}State.kt
+package {basePackage}.presentation.feature.{area}.list
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.text.input.TextFieldValue
+import {basePackage}.presentation.model.AppBarType
+
+@Immutable
+internal data class {Entities}State(
+    val searchQuery: TextFieldValue = TextFieldValue(),
+    val appBarType: AppBarType = AppBarType.DEFAULT,
+) {
+    val isSearching = appBarType == AppBarType.SEARCH && searchQuery.text.isNotBlank()
+}

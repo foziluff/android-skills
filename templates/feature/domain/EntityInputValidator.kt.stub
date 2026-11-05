@@ -1,0 +1,19 @@
+// domain/src/main/java/{basePackagePath}/domain/validation/{Entity}InputValidator.kt
+package {basePackage}.domain.validation
+
+import {basePackage}.domain.error.{Entity}Error
+import javax.inject.Inject
+
+class {Entity}InputValidator @Inject constructor() {
+    fun validate(title: String, desc: String?): {Entity}Error? = when {
+        title.isBlank() -> {Entity}Error.TitleEmpty
+        title.length > MAX_TITLE_LENGTH -> {Entity}Error.TitleMaxLength
+        (desc?.length ?: 0) > MAX_DESC_LENGTH -> {Entity}Error.DescMaxLength
+        else -> null
+    }
+
+    companion object {
+        const val MAX_TITLE_LENGTH = 40
+        const val MAX_DESC_LENGTH = 100
+    }
+}

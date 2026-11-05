@@ -1,0 +1,19 @@
+// core/src/main/java/{basePackagePath}/core/model/AppLanguage.kt
+package {basePackage}.core.model
+
+enum class AppLanguage(val tag: String) {
+    EN("en");
+
+    companion object {
+        fun fromTag(tag: String?): AppLanguage {
+            if (tag == null) return EN
+
+            val exactMatch = entries.find { it.tag.equals(tag, ignoreCase = true) }
+            if (exactMatch != null) return exactMatch
+
+            val baseLanguage = tag.substringBefore("-")
+
+            return entries.find { it.tag.equals(baseLanguage, ignoreCase = true) } ?: EN
+        }
+    }
+}

@@ -1,0 +1,12 @@
+// presentation/src/main/java/{basePackagePath}/presentation/model/{Entity}Ui.kt
+package {basePackage}.presentation.model
+
+import androidx.compose.runtime.Immutable
+
+@Immutable
+internal data class {Entity}Ui(
+    val id: Long,
+    val title: String,
+    val desc: String?,
+    val updatedAt: String
+)

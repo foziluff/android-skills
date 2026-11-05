@@ -1,0 +1,11 @@
+// data/src/main/java/{basePackagePath}/data/remote/ApiService.kt
+package {basePackage}.data.remote
+
+import retrofit2.Response
+import retrofit2.http.GET
+
+internal interface ApiService {
+    // DECISION: replace with the first real endpoint; every method is `suspend` and returns `Response<T>`
+    @GET("ping")
+    suspend fun ping(): Response<Unit>
+}

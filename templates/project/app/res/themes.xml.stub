@@ -1,0 +1,9 @@
+<!-- app/src/main/res/values/themes.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.{App}" parent="Theme.AppCompat.DayNight.NoActionBar" />
+
+    <style name="Theme.{App}.SplashScreen" parent="Theme.SplashScreen">
+        <item name="postSplashScreenTheme">@style/Theme.{App}</item>
+    </style>
+</resources>

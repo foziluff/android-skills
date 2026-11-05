@@ -1,0 +1,16 @@
+// data/src/main/java/{basePackagePath}/data/remote/response/{Entity}ResponseDto.kt
+package {basePackage}.data.remote.response
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class {Entity}ResponseDto(
+    @SerialName("server_id") val serverId: Long,
+    @SerialName("local_id") val localId: Long?,
+    @SerialName("update_seq") val updateSeq: Long,
+    val title: String,
+    val desc: String?,
+    @SerialName("local_created_at") val localCreatedAt: Long,
+    @SerialName("local_updated_at") val localUpdatedAt: Long
+)

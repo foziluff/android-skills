@@ -1,0 +1,25 @@
+// data/src/main/java/{basePackagePath}/data/mapper/{Entity}Mapper.kt
+package {basePackage}.data.mapper
+
+import {basePackage}.data.local.database.entity.{Entity}Entity
+import {basePackage}.data.remote.request.{Entity}RequestDto
+import {basePackage}.domain.entity.{Entity}
+import java.time.Instant
+
+internal fun {Entity}Entity.toDomain() = {Entity}(
+    id = id,
+    title = title,
+    desc = desc,
+    createdAt = Instant.ofEpochMilli(createdAt),
+    updatedAt = Instant.ofEpochMilli(updatedAt),
+    isSynced = isSynced
+)
+
+internal fun {Entity}Entity.toRequest() = {Entity}RequestDto(
+    serverId = serverId ?: 0L,
+    localId = id,
+    title = title,
+    desc = desc,
+    localCreatedAt = createdAt,
+    localUpdatedAt = updatedAt
+)

@@ -1,0 +1,42 @@
+// One class per file in domain/src/test/java/{basePackagePath}/domain/fake/                         [proposal]
+
+// FakeSyncRepository.kt
+internal class FakeSyncRepository : SyncRepository {
+    var syncCalls = 0
+
+    override fun observeState(): Flow<SyncState> = emptyFlow()
+
+    override suspend fun sync() {
+        syncCalls++
+    }
+}
+
+// FakeUserRepository.kt
+internal class FakeUserRepository(isPro: Boolean = false) : UserRepository {
+    private val user = MutableStateFlow<User?>(
+        User(id = 1, uuid = "uuid", name = "Test", email = null, activatedAt = null, isPro = isPro, isExpired = false)
+    )
+
+    override suspend fun sync(): Result<User, NetworkError> = Result.error(NetworkError.Any)
+    override fun registerInstallationId() {}
+    override fun observe(): Flow<User?> = user
+    override suspend fun clear() { user.value = null }
+    override suspend fun updateDevice(installationId: String): Result<Unit, NetworkError> = Result.success(Unit)
+}
+
+// FakeTransactionRunner.kt — runs the block inline, supports rollback(result)
+internal class FakeTransactionRunner : TransactionRunner {
+    override suspend fun <R> withWriteTransaction(block: suspend TransactionScope<R>.() -> R): R {
+        val scope = object : TransactionScope<R> {
+            override suspend fun rollback(result: R): Nothing = throw RollbackSignal(result)
+        }
+        return try {
+            scope.block()
+        } catch (signal: RollbackSignal) {
+            @Suppress("UNCHECKED_CAST")
+            signal.result as R
+        }
+    }
+
+    private class RollbackSignal(val result: Any?) : RuntimeException()
+}

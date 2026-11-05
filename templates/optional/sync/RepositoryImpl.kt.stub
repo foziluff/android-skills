@@ -1,0 +1,162 @@
+// data/src/main/java/{basePackagePath}/data/repository/{Entity}RepositoryImpl.kt
+package {basePackage}.data.repository
+
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.room3.RoomRawQuery
+import {basePackage}.data.local.database.dao.{Entity}Dao
+import {basePackage}.data.local.database.entity.{Entity}Entity
+import {basePackage}.data.mapper.toDomain
+import {basePackage}.data.mapper.toRequest
+import {basePackage}.data.remote.ApiFactory
+import {basePackage}.data.remote.ApiService
+import {basePackage}.data.remote.request.Sync{Entities}Request
+import {basePackage}.data.remote.safeApiCall
+import {basePackage}.domain.entity.{Entity}
+import {basePackage}.domain.error.NetworkError
+import {basePackage}.domain.repository.{Entity}Repository
+import {basePackage}.domain.value.Result
+import {basePackage}.domain.value.map
+import {basePackage}.domain.value.onError
+import {basePackage}.domain.value.onSuccess
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+internal class {Entity}RepositoryImpl @Inject constructor(
+    private val {entity}Dao: {Entity}Dao,
+    private val apiService: ApiService,
+) : {Entity}Repository {
+    override fun observePaged(searchQuery: String?): Flow<PagingData<{Entity}>> = Pager(
+        config = PagingConfig(
+            pageSize = PAGE_SIZE,
+            prefetchDistance = PREFETCH_DISTANCE,
+            initialLoadSize = PAGE_SIZE
+        ),
+        pagingSourceFactory = { {entity}Dao.pagingSource(pagingConstructQuery(searchQuery)) }
+    ).flow.map { pagingData ->
+        pagingData.map { {entity}Entity -> {entity}Entity.toDomain() }
+    }
+
+    override fun observe({entity}Id: Long): Flow<{Entity}?> =
+        {entity}Dao.loadById({entity}Id).map { {entity}Entity -> {entity}Entity?.toDomain() }
+
+    override suspend fun create(title: String, desc: String?): Long {
+        val now = System.currentTimeMillis()
+        return {entity}Dao.insert(
+            {entity} = {Entity}Entity(
+                id = 0L,
+                serverId = null,
+                serverUpdateSeq = null,
+                isSynced = false,
+                title = title,
+                desc = desc,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+    }
+
+    override suspend fun update(id: Long, title: String, desc: String?) = {entity}Dao.update(
+        id = id,
+        title = title,
+        desc = desc,
+        updatedAt = System.currentTimeMillis()
+    )
+
+    override suspend fun delete({entity}Ids: List<Long>) = {entity}Dao.deleteWithSync({entity}Ids)
+
+    override suspend fun getCount(): Int = {entity}Dao.getCount()
+
+    override suspend fun clear() {
+        {entity}Dao.clear()
+        {entity}Dao.resetAutoIncrement()
+    }
+
+    override suspend fun sync(): Result<Unit, NetworkError> {
+        var result: Result<Unit, NetworkError>
+
+        var confirmedDeletedIdsToAck = emptyList<Long>()
+
+        var isFinished = false
+
+        do {
+            val unsynced{Entities} = {entity}Dao.getUnsynced{Entities}(ApiFactory.LIMIT_COUNT)
+            val deletedIds = {entity}Dao.getDeletedIds(ApiFactory.LIMIT_COUNT)
+            val clientUpdateSeq = {entity}Dao.getMaxUpdateSeq()
+
+            val request = Sync{Entities}Request(
+                {entities} = unsynced{Entities}.map { it.toRequest() },
+                deletedIds = deletedIds,
+                confirmedDeletedIds = confirmedDeletedIdsToAck,
+                clientUpdateSeq = clientUpdateSeq
+            )
+
+            result = safeApiCall {
+                apiService.sync{Entities}(request)
+            }.onSuccess { response ->
+                if (unsynced{Entities}.isNotEmpty()) {
+                    {entity}Dao.update{Entities}(unsynced{Entities}.map { it.copy(isSynced = true) })
+                }
+
+                if (deletedIds.isNotEmpty()) {
+                    {entity}Dao.removeDeletedIds(deletedIds)
+                }
+
+                response.{entities}.forEach { {entity}Dao.upsertFromServer(it) }
+
+                if (response.deletedIds.isNotEmpty()) {
+                    {entity}Dao.deleteByServerIds(response.deletedIds)
+                }
+
+                confirmedDeletedIdsToAck = response.deletedIds
+
+                val hadItems = unsynced{Entities}.size >= ApiFactory.LIMIT_COUNT
+                        || deletedIds.size >= ApiFactory.LIMIT_COUNT
+                        || response.{entities}.size >= ApiFactory.LIMIT_COUNT
+                        || response.deletedIds.size >= ApiFactory.LIMIT_COUNT
+                        || confirmedDeletedIdsToAck.isNotEmpty()
+
+                isFinished = !hadItems
+            }.onError {
+                isFinished = true
+            }.map {}
+        } while (!isFinished)
+
+        return result
+    }
+
+    private fun pagingConstructQuery(searchQuery: String?): RoomRawQuery {
+        val order: String
+        var statementSearchQuery: String? = null
+
+        var sql = if (searchQuery.isNullOrBlank()) {
+            order = "updated_at DESC"
+            "SELECT * FROM {entities_table}"
+        } else {
+            order = "e.updated_at DESC"
+            statementSearchQuery = searchQuery
+            """
+                SELECT e.* FROM {entities_table} AS e
+                JOIN {entities_table}_fts AS f ON f.rowid = e.id
+                WHERE {entities_table}_fts MATCH ? || '*'
+            """.trimIndent()
+        }
+
+        sql += " ORDER BY $order"
+
+        return RoomRawQuery(
+            sql = sql,
+            onBindStatement = { statement ->
+                statementSearchQuery?.let { statement.bindText(1, it) }
+            }
+        )
+    }
+
+    companion object {
+        private const val PAGE_SIZE = 30
+        private const val PREFETCH_DISTANCE = 10
+    }
+}

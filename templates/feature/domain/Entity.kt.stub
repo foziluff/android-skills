@@ -1,0 +1,12 @@
+// domain/src/main/java/{basePackagePath}/domain/entity/{Entity}.kt
+package {basePackage}.domain.entity
+
+import java.time.Instant
+
+data class {Entity}(
+    val id: Long,
+    val title: String,
+    val desc: String?,
+    val createdAt: Instant,
+    val updatedAt: Instant
+)

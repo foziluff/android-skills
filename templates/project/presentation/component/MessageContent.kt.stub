@@ -1,0 +1,90 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/MessageContent.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentPasteSearch
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import {basePackage}.presentation.ui.theme.appColorScheme
+import {basePackage}.presentation.ui.theme.sizing
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun MessageContent(
+    title: String,
+    text: String,
+    linkText: String,
+    modifier: Modifier = Modifier,
+    onLinkClick: () -> Unit
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        Icon(
+            imageVector = Icons.Outlined.ContentPasteSearch,
+            contentDescription = null,
+            modifier = Modifier.size(MaterialTheme.sizing.emptyStateIcon),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.space100))
+        Text(
+            text = title,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.space100))
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.space200),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.space100))
+        MessageLink(
+            linkText = linkText,
+            onLinkClick = onLinkClick
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        Spacer(Modifier.weight(2f))
+    }
+}
+
+@Composable
+private fun MessageLink(
+    linkText: String,
+    onLinkClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    Text(
+        text = "$linkText  ›",
+        modifier = Modifier.clickable(
+            interactionSource = interactionSource,
+            onClick = onLinkClick
+        ),
+        color = MaterialTheme.appColorScheme.link,
+        fontWeight = FontWeight.Bold,
+        textDecoration = if (isPressed) TextDecoration.Underline else null
+    )
+}

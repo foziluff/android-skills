@@ -1,0 +1,10 @@
+// app/src/main/java/{basePackagePath}/{appName}/model/SyncState.kt   (Worker output, serialized into WorkInfo.outputData)
+package {basePackage}.{appName}.model
+
+import {basePackage}.domain.value.SyncType
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class SyncState(
+    val commonState: SyncType,
+)

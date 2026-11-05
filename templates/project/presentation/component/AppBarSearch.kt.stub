@@ -1,0 +1,109 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppBarSearch.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
+import {basePackage}.presentation.ui.theme.sizing
+import {basePackage}.presentation.ui.theme.spacing
+import {basePackage}.presentation.util.rememberKeyboardController
+import {basePackage}.presentation.util.requestFocusCatch
+
+@Composable
+internal fun AppBarSearch(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onBack: () -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    val keyboardController = rememberKeyboardController()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocusCatch()
+    }
+
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surface)
+            .windowInsetsPadding(TopAppBarDefaults.windowInsets)
+            .height(MaterialTheme.sizing.topAppBarHeight)
+            .padding(horizontal = MaterialTheme.spacing.space200)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(MaterialTheme.sizing.searchTextFieldHeight)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AppIconButton(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                onClick = {
+                    keyboardController.hide()
+                    onBack()
+                }
+            )
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(focusRequester),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = { keyboardController.hide(false) }
+                ),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    innerTextField()
+                    if (value.text.isEmpty()) Text(
+                        text = placeholder,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            )
+            if (value.text.isNotEmpty()) AppIconButton(
+                imageVector = Icons.Outlined.Close,
+                onClick = { onValueChange(TextFieldValue()) }
+            )
+        }
+    }
+}

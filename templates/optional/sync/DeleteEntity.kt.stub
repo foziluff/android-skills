@@ -1,0 +1,12 @@
+// data/src/main/java/{basePackagePath}/data/local/database/entity/{Entity}DeleteEntity.kt
+package {basePackage}.data.local.database.entity
+
+import androidx.room3.ColumnInfo
+import androidx.room3.Entity
+import androidx.room3.PrimaryKey
+
+@Entity(tableName = "{entity_snake}_deletes")
+internal data class {Entity}DeleteEntity(
+    @ColumnInfo(name = "server_id")
+    @PrimaryKey val serverId: Long
+)

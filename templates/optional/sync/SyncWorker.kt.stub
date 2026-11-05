@@ -1,0 +1,91 @@
+// app/src/main/java/{basePackagePath}/{appName}/worker/SyncWorker.kt
+package {basePackage}.{appName}.worker
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.hilt.work.HiltWorker
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import {basePackage}.{appName}.model.SyncState
+import {basePackage}.domain.error.NetworkError
+import {basePackage}.domain.repository.{Entity}Repository
+import {basePackage}.domain.value.SyncType
+import {basePackage}.domain.value.onError
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.json.Json
+
+@HiltWorker
+internal class SyncWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val dataStore: DataStore<Preferences>,
+    private val {entity}Repository: {Entity}Repository,
+) : CoroutineWorker(appContext, workerParams) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        // DECISION: long syncs → setForeground(getForegroundInfo()) with FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        //           (reference project wraps it in try/catch (_: IllegalStateException))
+        var syncState = SyncState(commonState = SyncType.SUCCESS)
+        val mutex = Mutex()
+
+        do {
+            dataStore.edit { preferences -> preferences[isSyncPendingKey] = false }
+
+            val jobs = mutableListOf<Job>()
+
+            jobs.add(
+                launch {
+                    {entity}Repository.sync().onError { error ->
+                        mutex.withLock { syncState = syncState.copy(commonState = error.toSyncType()) }
+                    }
+                }
+            )
+            // DECISION: one job per synced entity; children run inside the parent's onSuccess
+
+            jobs.joinAll()
+        } while (dataStore.data.first()[isSyncPendingKey] == true)
+
+        val stateString = Json.encodeToString(SyncState.serializer(), syncState)
+        Result.success(workDataOf(KEY_SYNC_STATE to stateString))
+    }
+
+    private fun NetworkError.toSyncType() =
+        if (this is NetworkError.Network && code == HTTP_UNAUTHORIZED) SyncType.LOGOUT else SyncType.ERROR
+
+    companion object {
+        const val KEY_SYNC_STATE = "sync_state"
+        const val WORK_NAME = "sync_data"
+        private const val HTTP_UNAUTHORIZED = 401
+        private val isSyncPendingKey = booleanPreferencesKey("is_sync_pending")
+
+        suspend fun enqueue(dataStore: DataStore<Preferences>, workManager: WorkManager) {
+            dataStore.edit { preferences -> preferences[isSyncPendingKey] = true }
+
+            val request = OneTimeWorkRequestBuilder<SyncWorker>()
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .build()
+
+            workManager.enqueueUniqueWork(
+                uniqueWorkName = WORK_NAME,
+                existingWorkPolicy = ExistingWorkPolicy.KEEP,
+                request = request
+            )
+        }
+    }
+}

@@ -1,0 +1,14 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/edit/Edit{Entity}Intent.kt
+package {basePackage}.presentation.feature.{area}.edit
+
+import androidx.compose.ui.text.input.TextFieldValue
+
+internal sealed interface Edit{Entity}Intent {
+    data class TitleChanged(val value: TextFieldValue) : Edit{Entity}Intent
+
+    data class DescChanged(val value: TextFieldValue) : Edit{Entity}Intent
+
+    data object SaveClicked : Edit{Entity}Intent
+
+    data object Delete : Edit{Entity}Intent
+}

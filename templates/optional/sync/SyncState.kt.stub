@@ -1,0 +1,14 @@
+// domain/src/main/java/{basePackagePath}/domain/value/SyncState.kt
+package {basePackage}.domain.value
+
+data class SyncState(
+    val commonState: SyncType,
+    // DECISION: one field per area the UI shows separately (reference project: contactsState, notesState)
+)
+
+enum class SyncType {
+    LOADING,
+    SUCCESS,
+    ERROR,
+    LOGOUT,          // 401 from the server — only if the app has authentication
+}

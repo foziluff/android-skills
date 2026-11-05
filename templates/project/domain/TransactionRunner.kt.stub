@@ -1,0 +1,10 @@
+// domain/src/main/java/{basePackagePath}/domain/gateway/TransactionRunner.kt
+package {basePackage}.domain.gateway
+
+interface TransactionRunner {
+    suspend fun <R> withWriteTransaction(block: suspend TransactionScope<R>.() -> R): R
+}
+
+interface TransactionScope<T> {
+    suspend fun rollback(result: T): Nothing
+}

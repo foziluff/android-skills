@@ -1,0 +1,8 @@
+// presentation/src/main/java/{basePackagePath}/presentation/model/AppBarType.kt
+package {basePackage}.presentation.model
+
+internal enum class AppBarType {
+    DEFAULT,
+    SEARCH,
+    SELECTED
+}

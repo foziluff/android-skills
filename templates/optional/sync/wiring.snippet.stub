@@ -1,0 +1,27 @@
+// ---- data/.../di/DataModule.kt — nothing new if the entity already has a Dao/Repository binding --------------
+
+// ---- data/.../local/database/AppDatabase.kt ------------------------------------------------------------------
+//  entities += {Entity}DeleteEntity::class
+//  version += 1 and a Migration adding server_id, server_update_seq, is_synced (+ indices) and the tombstone table.
+//  Never destructive: unsynced user data would be lost.
+
+// ---- domain: entity / repository -------------------------------------------------------------------------------
+//  {Entity}: add `val isSynced: Boolean` (only if the UI shows sync status)
+//  {Entity}Repository: add
+    suspend fun clear()
+
+    suspend fun sync(): Result<Unit, NetworkError>
+
+// ---- domain: every write use case (Create / Update / Delete) ----------------------------------------------------
+//  inject `private val syncRepository: SyncRepository` and call it after a successful write:
+        syncRepository.sync()
+//  Create inside a transaction: `transactionRunner.withWriteTransaction { … }.onSuccess { syncRepository.sync() }`
+
+// ---- presentation: list ViewModel / Screen ------------------------------------------------------------------------
+//  ViewModel: `private val syncUseCase: SyncUseCase`, intent `Refresh -> viewModelScope.launch { syncUseCase() }`
+//  Screen: wrap the LazyColumn in
+//      PullToRefresh(isRefreshing = syncState.commonState == SyncType.LOADING, onRefresh = { processIntent(Refresh) })
+//  where `syncState` comes from `LocalSyncState` provided by MainScreen (MainViewModel observes ObserveSyncStateUseCase).
+
+// ---- app: SyncWorker — one job per synced entity (see SyncWorker.kt.stub) -------------------------------------------
+//  Logout (if the app has auth): clear() every synced repository inside one transactionRunner.withWriteTransaction.

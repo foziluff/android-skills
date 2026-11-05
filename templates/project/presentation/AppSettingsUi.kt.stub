@@ -1,0 +1,10 @@
+// presentation/src/main/java/{basePackagePath}/presentation/model/AppSettingsUi.kt
+package {basePackage}.presentation.model
+
+import androidx.compose.runtime.Immutable
+import {basePackage}.domain.value.AppTheme
+
+@Immutable
+internal data class AppSettingsUi(
+    val theme: AppTheme,
+)

@@ -1,0 +1,8 @@
+<!-- app/src/main/res/xml/backup_rules.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and lower. The token key lives in AndroidKeyStore and is never restored, so the encrypted token is useless
+     after restore anyway; the database and settings are user data — exclude them unless cloud backup is a product decision. -->
+<full-backup-content>
+    <exclude domain="database" path="." />
+    <exclude domain="file" path="datastore/" />
+</full-backup-content>

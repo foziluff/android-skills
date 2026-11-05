@@ -1,0 +1,84 @@
+// data/src/main/java/{basePackagePath}/data/di/DataModule.kt
+package {basePackage}.data.di
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.room3.Room
+import {basePackage}.data.local.database.AppDatabase
+import {basePackage}.data.local.database.dao.{Entity}Dao
+import {basePackage}.data.local.datastore.dataStore
+import {basePackage}.data.platform.RoomTransactionRunner
+import {basePackage}.data.platform.TokenGatewayImpl
+import {basePackage}.data.remote.ApiFactory
+import {basePackage}.data.remote.ApiService
+import {basePackage}.data.remote.interceptor.AuthInterceptor
+import {basePackage}.data.repository.AppSettingsRepositoryImpl
+import {basePackage}.data.repository.{Entity}RepositoryImpl
+import {basePackage}.domain.gateway.TokenGateway
+import {basePackage}.domain.gateway.TransactionRunner
+import {basePackage}.domain.repository.AppSettingsRepository
+import {basePackage}.domain.repository.{Entity}Repository
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal interface DataModule {
+    @[Binds Singleton]
+    fun bindAppSettingsRepository(impl: AppSettingsRepositoryImpl): AppSettingsRepository
+
+    @[Binds Singleton]
+    fun bindTransactionRunner(impl: RoomTransactionRunner): TransactionRunner
+
+    @[Binds Singleton]
+    fun bindTokenGateway(impl: TokenGatewayImpl): TokenGateway
+
+    @[Binds Singleton]
+    fun bind{Entity}Repository(impl: {Entity}RepositoryImpl): {Entity}Repository
+
+    companion object {
+        @[Provides Singleton]
+        fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
+            Room.databaseBuilder<AppDatabase>(context, AppDatabase.DB_NAME).build()
+
+        @[Provides Singleton]
+        fun provide{Entity}Dao(appDatabase: AppDatabase): {Entity}Dao = appDatabase.{entity}Dao()
+
+        @[Provides Singleton]
+        fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+            return OkHttpClient.Builder()
+                .addInterceptor(authInterceptor)
+                .build()
+        }
+
+        @[Provides Singleton]
+        fun provideApiService(okHttpClient: OkHttpClient): ApiService {
+            val json = Json {
+                ignoreUnknownKeys = true
+            }
+            val contentType = "application/json".toMediaType()
+
+            return Retrofit.Builder()
+                .baseUrl(ApiFactory.BASE_URL)
+                .client(okHttpClient)
+                .addConverterFactory(json.asConverterFactory(contentType))
+                .build()
+                .create(ApiService::class.java)
+        }
+
+        @[Provides Singleton]
+        fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
+            context.dataStore
+    }
+}

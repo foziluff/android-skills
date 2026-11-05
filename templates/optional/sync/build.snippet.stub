@@ -1,0 +1,40 @@
+# ---- gradle/libs.versions.toml ------------------------------------------------------------------------------
+[versions]
+# Work
+work_version = "2.11.2"
+
+[libraries]
+# Work
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work_version" }
+hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "androidx-hilt" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "androidx-hilt" }
+
+[bundles]
+work = ["work-runtime-ktx", "hilt-work"]
+
+# ---- app/build.gradle.kts ----------------------------------------------------------------------------------
+#   plugins { alias(libs.plugins.jetbrains.kotlin.serialization) }      (Worker output is JSON)
+#   dependencies {
+#       // Work
+#       implementation(libs.bundles.work)
+#       ksp(libs.androidx.hilt.compiler)
+#       // Kotlin serialization
+#       implementation(libs.kotlinx.serialization.json)
+#       // Datastore
+#       implementation(libs.datastore.preferences)
+#   }
+
+# ---- app/src/main/AndroidManifest.xml (inside <application>) — custom WorkManager configuration --------------
+#   <provider
+#       android:name="androidx.startup.InitializationProvider"
+#       android:authorities="${applicationId}.androidx-startup"
+#       android:exported="false"
+#       tools:node="merge">
+#       <meta-data
+#           android:name="androidx.work.WorkManagerInitializer"
+#           android:value="androidx.startup"
+#           tools:node="remove" />
+#   </provider>
+
+# ---- data/src/main/java/{basePackagePath}/data/remote/ApiFactory.kt ------------------------------------------
+#   const val LIMIT_COUNT = 200          // sync batch, also the max bulk-delete selection

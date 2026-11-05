@@ -1,0 +1,50 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/list/{Entities}ViewModel.kt
+package {basePackage}.presentation.feature.{area}.list
+
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
+import androidx.paging.map
+import {basePackage}.domain.usecase.{area}.Observe{Entities}PagedUseCase
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.presentation.mapper.toUi
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import javax.inject.Inject
+
+@HiltViewModel
+internal class {Entities}ViewModel @Inject constructor(
+    observe{Entities}PagedUseCase: Observe{Entities}PagedUseCase,
+) : ViewModel() {
+    private val _state = MutableStateFlow({Entities}State())
+    val state = _state.asStateFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val {entities} = _state
+        .map { it.searchQuery.text.trim().ifBlank { null } }
+        .distinctUntilChanged()
+        .flatMapLatest { searchQuery -> observe{Entities}PagedUseCase(searchQuery) }
+        .map { pagingData -> pagingData.map { {entity} -> {entity}.toUi() } }
+        .cachedIn(viewModelScope)
+
+    fun processIntent(intent: {Entities}Intent) {
+        when (intent) {
+            is {Entities}Intent.AppBarTypeChanged -> _state.update {
+                it.copy(searchQuery = TextFieldValue(), appBarType = intent.appBarType)
+            }
+
+            is {Entities}Intent.SearchQueryChanged -> {
+                if (intent.searchQuery.text.trim().length > {Entity}InputValidator.MAX_TITLE_LENGTH) return
+
+                _state.update { it.copy(searchQuery = intent.searchQuery) }
+            }
+        }
+    }
+}

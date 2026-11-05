@@ -1,0 +1,30 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/main/MainViewModel.kt
+package {basePackage}.presentation.feature.main
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import {basePackage}.domain.usecase.preferences.ObserveAppSettingsUseCase
+import {basePackage}.presentation.mapper.toUi
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import javax.inject.Inject
+
+@HiltViewModel
+internal class MainViewModel @Inject constructor(
+    observeAppSettingsUseCase: ObserveAppSettingsUseCase,
+) : ViewModel() {
+    private val _state = MutableStateFlow(MainState())
+    val state = _state.asStateFlow()
+
+    init {
+        observeAppSettingsUseCase()
+            .onEach { appSettings ->
+                _state.update { it.copy(appSettings = appSettings.toUi()) }
+            }
+            .launchIn(viewModelScope)
+    }
+}

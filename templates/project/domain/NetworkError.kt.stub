@@ -1,0 +1,11 @@
+// domain/src/main/java/{basePackagePath}/domain/error/NetworkError.kt
+package {basePackage}.domain.error
+
+sealed interface NetworkError : RootError {
+    data object UnknownHost : NetworkError
+    data object SocketTimeout : NetworkError
+    data object Connect : NetworkError
+    data object IO : NetworkError
+    data class Network(val code: Int) : NetworkError
+    data object Any : NetworkError
+}

@@ -1,0 +1,12 @@
+// domain/src/main/java/{basePackagePath}/domain/repository/AppSettingsRepository.kt
+package {basePackage}.domain.repository
+
+import {basePackage}.domain.value.AppSettings
+import {basePackage}.domain.value.AppTheme
+import kotlinx.coroutines.flow.Flow
+
+interface AppSettingsRepository {
+    fun observe(): Flow<AppSettings>
+
+    suspend fun updateTheme(theme: AppTheme)
+}

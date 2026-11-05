@@ -1,0 +1,14 @@
+// domain/src/main/java/{basePackagePath}/domain/value/AppSettings.kt
+package {basePackage}.domain.value
+
+data class AppSettings(
+    val theme: AppTheme,
+) {
+    companion object {
+        val Default = AppSettings(
+            theme = AppTheme.SYSTEM,
+        )
+    }
+}
+
+enum class AppTheme { LIGHT, DARK, SYSTEM }

@@ -1,0 +1,57 @@
+// Free/Pro (or any plan) quota on creating an entity. Prerequisite: a source of the paid flag.
+// Reference project: `userRepository.observe().firstOrNull()?.isPro == true` (User cached in DataStore after /me).
+// DECISION: replace with the project's entitlement source; keep the check inside the write transaction.
+
+// ---- domain/error/{Entity}Error.kt ---------------------------------------------------------------------------
+    data object MaxCount : {Entity}Error      // hard cap (paid limit) → "limit reached" dialog
+    data object Limit : {Entity}Error         // free limit → "upgrade" dialog
+
+// ---- domain/specification/CanAdd{Entity}Specification.kt → Specification.kt.stub
+// ---- domain/usecase/{area}/Create{Entity}UseCase.kt → CreateUseCase.kt.stub (transaction + count + check)
+
+// ---- presentation/feature/{area}/add/Add{Entity}State.kt -------------------------------------------------------
+    val showMaxCountDialog: Boolean = false,
+    val showSubscriptionDialog: Boolean = false,
+
+// ---- Add{Entity}Intent.kt ------------------------------------------------------------------------------------
+    data class ShowMaxCountDialogChanged(val visible: Boolean) : Add{Entity}Intent
+    data class ShowSubscriptionDialogChanged(val visible: Boolean) : Add{Entity}Intent
+
+// ---- Add{Entity}Event.kt -------------------------------------------------------------------------------------
+    data object UpgradeSubscriptionClicked : Add{Entity}Event
+
+// ---- Add{Entity}ViewModel.kt: processIntent + error mapping -----------------------------------------------------
+            is Add{Entity}Intent.ShowMaxCountDialogChanged -> _state.update { it.copy(showMaxCountDialog = intent.visible) }
+            is Add{Entity}Intent.ShowSubscriptionDialogChanged -> _state.update { it.copy(showSubscriptionDialog = intent.visible) }
+    // in onError:
+                    {Entity}Error.MaxCount -> _state.update { it.copy(showMaxCountDialog = true) }
+                    {Entity}Error.Limit -> _state.update { it.copy(showSubscriptionDialog = true) }
+
+// ---- Add{Entity}Screen.kt: dialogs at the end of the screen ------------------------------------------------------
+    when {
+        state.showMaxCountDialog -> DialogMessage(
+            title = stringResource(R.string.limit_reached_title),
+            text = stringResource(R.string.limit_reached_message),
+            buttonText = stringResource(R.string.action_open_list),
+            onDismiss = { viewModel.processIntent(Add{Entity}Intent.ShowMaxCountDialogChanged(false)) },
+            onClick = {
+                viewModel.processIntent(Add{Entity}Intent.ShowMaxCountDialogChanged(false))
+                onBack()
+            }
+        )
+
+        state.showSubscriptionDialog -> DialogMessage(
+            title = stringResource(R.string.subscription_limit_title),
+            text = stringResource(R.string.subscription_limit_message),
+            buttonText = stringResource(R.string.action_upgrade),
+            onDismiss = { viewModel.processIntent(Add{Entity}Intent.ShowSubscriptionDialogChanged(false)) },
+            onClick = {
+                keyboardController.hide()
+                viewModel.processIntent(Add{Entity}Intent.ShowSubscriptionDialogChanged(false))
+                processEvent(Add{Entity}Event.UpgradeSubscriptionClicked)
+            }
+        )
+    }
+
+// ---- strings (all locales): limit_reached_title, limit_reached_message, action_open_list,
+//      subscription_limit_title, subscription_limit_message, action_upgrade

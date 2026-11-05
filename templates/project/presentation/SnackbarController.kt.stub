@@ -1,0 +1,61 @@
+// presentation/src/main/java/{basePackagePath}/presentation/util/SnackbarController.kt
+package {basePackage}.presentation.util
+
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
+
+internal object SnackbarController {
+    private val _events = Channel<SnackbarEvent>(Channel.CONFLATED)
+    val events = _events.receiveAsFlow()
+
+    val snackbarHostState: SnackbarHostState = SnackbarHostState()
+
+    suspend fun showMessage(
+        message: UiText,
+        actionLabel: String? = null,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        withDismissAction: Boolean = true
+    ) {
+        _events.send(SnackbarEvent(message, actionLabel, duration, withDismissAction))
+    }
+}
+
+internal data class SnackbarEvent(
+    val message: UiText,
+    val actionLabel: String?,
+    val duration: SnackbarDuration,
+    val withDismissAction: Boolean
+)
+
+internal enum class SnackbarDuration { Short, Long, Indefinite }
+
+@Composable
+internal fun ObserveSnackbarEvents() {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        SnackbarController.events.collectLatest { event ->
+            val duration = when (event.duration) {
+                SnackbarDuration.Short -> androidx.compose.material3.SnackbarDuration.Short
+                SnackbarDuration.Long -> androidx.compose.material3.SnackbarDuration.Long
+                SnackbarDuration.Indefinite -> androidx.compose.material3.SnackbarDuration.Indefinite
+            }
+
+            withTimeoutOrNull(5.seconds) {
+                SnackbarController.snackbarHostState.showSnackbar(
+                    message = event.message.asString(context),
+                    actionLabel = event.actionLabel,
+                    duration = duration,
+                    withDismissAction = event.withDismissAction
+                )
+            }
+        }
+    }
+}

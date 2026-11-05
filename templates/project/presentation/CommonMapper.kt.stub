@@ -1,0 +1,19 @@
+// presentation/src/main/java/{basePackagePath}/presentation/mapper/CommonMapper.kt
+package {basePackage}.presentation.mapper
+
+import {basePackage}.domain.entity.{Entity}
+import {basePackage}.domain.value.AppSettings
+import {basePackage}.presentation.model.AppSettingsUi
+import {basePackage}.presentation.model.{Entity}Ui
+import {basePackage}.presentation.util.toFormatDateTime
+
+internal fun AppSettings.toUi() = AppSettingsUi(
+    theme = theme,
+)
+
+internal fun {Entity}.toUi() = {Entity}Ui(
+    id = id,
+    title = title,
+    desc = desc,
+    updatedAt = updatedAt.toFormatDateTime(),
+)

@@ -1,0 +1,77 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppBar.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
+import {basePackage}.presentation.ui.theme.sizing
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun AppBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+    hasDivider: Boolean = true,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    style: TextStyle = MaterialTheme.typography.titleLarge,
+    actions: @Composable RowScope.() -> Unit = {}
+) {
+    Column(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surface)
+            .windowInsetsPadding(TopAppBarDefaults.windowInsets)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(MaterialTheme.sizing.topAppBarHeight)
+                .background(containerColor)
+                .padding(horizontal = MaterialTheme.spacing.space50),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (onBack != null) {
+                AppIconButton(
+                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                    onClick = onBack
+                )
+                Spacer(Modifier.width(MaterialTheme.spacing.space50))
+            } else {
+                Spacer(
+                    modifier = Modifier.width(
+                        width = MaterialTheme.spacing.space150
+                    )
+                )
+            }
+            Text(
+                text = title,
+                modifier = Modifier.weight(1f),
+                style = style,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.width(MaterialTheme.spacing.space50))
+            actions()
+        }
+        if (hasDivider) HorizontalDivider(thickness = MaterialTheme.sizing.dividerThin)
+    }
+}

@@ -1,0 +1,77 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/add/Add{Entity}ViewModel.kt
+package {basePackage}.presentation.feature.{area}.add
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import {basePackage}.domain.error.{Entity}Error
+import {basePackage}.domain.usecase.{area}.Create{Entity}UseCase
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.domain.value.onError
+import {basePackage}.domain.value.onSuccess
+import {basePackage}.presentation.R
+import {basePackage}.presentation.util.UiText
+import dagger.Lazy
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+internal class Add{Entity}ViewModel @Inject constructor(
+    private val create{Entity}UseCase: Lazy<Create{Entity}UseCase>,
+) : ViewModel() {
+    private val _state = MutableStateFlow(Add{Entity}State())
+    val state = _state.asStateFlow()
+
+    private val _effect = Channel<Add{Entity}Effect>(Channel.CONFLATED)
+    val effect = _effect.receiveAsFlow()
+
+    fun processIntent(intent: Add{Entity}Intent) {
+        when (intent) {
+            is Add{Entity}Intent.TitleChanged -> {
+                if (intent.value.text.trim().length > {Entity}InputValidator.MAX_TITLE_LENGTH) return
+
+                _state.update { it.copy(titleValue = intent.value, titleErrorUiText = null) }
+            }
+
+            is Add{Entity}Intent.DescChanged -> {
+                if (intent.value.text.trim().length > {Entity}InputValidator.MAX_DESC_LENGTH) return
+
+                _state.update { it.copy(descValue = intent.value) }
+            }
+
+            Add{Entity}Intent.SaveClicked -> handleSaveClicked()
+        }
+    }
+
+    private fun handleSaveClicked() {
+        _state.update { it.copy(isProcessing = true) }
+
+        val title = _state.value.titleValue.text
+        val desc = _state.value.descValue.text
+
+        viewModelScope.launch {
+            create{Entity}UseCase.get().invoke(
+                params = Create{Entity}UseCase.Params(title = title, desc = desc)
+            ).onSuccess {
+                _effect.send(Add{Entity}Effect.Saved)
+            }.onError { error ->
+                when (error) {
+                    {Entity}Error.TitleEmpty -> _state.update {
+                        it.copy(titleErrorUiText = UiText.StringResource(R.string.field_required))
+                    }
+
+                    {Entity}Error.TitleMaxLength,
+                    {Entity}Error.DescMaxLength,
+                    {Entity}Error.ListEmpty -> {}
+                }
+            }
+        }.invokeOnCompletion {
+            _state.update { it.copy(isProcessing = false) }
+        }
+    }
+}

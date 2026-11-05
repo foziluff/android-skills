@@ -1,0 +1,46 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppTextButton.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import {basePackage}.presentation.ui.theme.appColorScheme
+
+@Composable
+internal fun AppTextButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.appColorScheme.onSurface,
+    containerColor: Color = Color.Unspecified,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    GestureAnimationContent(
+        isPressed = isPressed,
+        modifier = modifier,
+        scaleEffect = 0.02f
+    ) {
+        TextButton(
+            onClick = onClick,
+            enabled = enabled,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = contentColor,
+                containerColor = containerColor
+            ),
+            interactionSource = interactionSource
+        ) {
+            Text(text)
+        }
+    }
+}

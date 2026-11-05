@@ -1,0 +1,145 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/add/Add{Entity}Screen.kt
+package {basePackage}.presentation.feature.{area}.add
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.presentation.R
+import {basePackage}.presentation.component.AppBar
+import {basePackage}.presentation.component.AppButton
+import {basePackage}.presentation.component.AppTextField
+import {basePackage}.presentation.ui.theme.spacing
+import {basePackage}.presentation.util.hideKeyboard
+import {basePackage}.presentation.util.rememberKeyboardController
+import kotlinx.coroutines.flow.collectLatest
+
+@Composable
+internal fun Add{Entity}Screen(
+    processEvent: (Add{Entity}Event) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: Add{Entity}ViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val keyboardController = rememberKeyboardController()
+
+    val onBack = {
+        keyboardController.hide()
+        processEvent(Add{Entity}Event.Back)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                Add{Entity}Effect.Saved -> onBack()
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = modifier
+            .hideKeyboard(keyboardController)
+            .fillMaxSize(),
+        topBar = {
+            AppBar(
+                title = stringResource(R.string.new_{entity_snake}),
+                onBack = onBack
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+        ) {
+            {Entity}Fields(
+                state = state,
+                processIntent = viewModel::processIntent,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+            BottomSaveButton(
+                isEnabled = !state.isProcessing,
+                onClick = { viewModel.processIntent(Add{Entity}Intent.SaveClicked) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun {Entity}Fields(
+    state: Add{Entity}State,
+    processIntent: (Add{Entity}Intent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = MaterialTheme.spacing.space300)
+    ) {
+        Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        AppTextField(
+            value = state.titleValue,
+            onValueChange = { processIntent(Add{Entity}Intent.TitleChanged(it)) },
+            modifier = Modifier.fillMaxWidth(),
+            errorMessage = state.titleErrorUiText?.asString(),
+            label = stringResource(R.string.{entity_snake}_title) + " *",
+            maxLength = {Entity}InputValidator.MAX_TITLE_LENGTH,
+            maxLines = 1,
+            autofocus = true
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        AppTextField(
+            value = state.descValue,
+            onValueChange = { processIntent(Add{Entity}Intent.DescChanged(it)) },
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.{entity_snake}_desc),
+            maxLength = {Entity}InputValidator.MAX_DESC_LENGTH
+        )
+    }
+}
+
+@Composable
+private fun BottomSaveButton(
+    isEnabled: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .imePadding()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(
+                start = MaterialTheme.spacing.space300,
+                end = MaterialTheme.spacing.space300,
+                top = MaterialTheme.spacing.space100,
+                bottom = MaterialTheme.spacing.space200
+            )
+    ) {
+        AppButton(
+            text = stringResource(R.string.save),
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isEnabled,
+            onClick = onClick
+        )
+    }
+}

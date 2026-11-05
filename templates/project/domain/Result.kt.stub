@@ -1,0 +1,40 @@
+// domain/src/main/java/{basePackagePath}/domain/value/Result.kt
+package {basePackage}.domain.value
+
+import {basePackage}.domain.error.RootError
+
+sealed interface Result<out T, out E : RootError> {
+    data class Success<out T>(val value: T) : Result<T, Nothing>
+    data class Error<out E : RootError>(val error: E) : Result<Nothing, E>
+
+    companion object {
+        fun <T> success(value: T): Result<T, Nothing> = Success(value)
+        fun <E : RootError> error(error: E): Result<Nothing, E> = Error(error)
+    }
+}
+
+inline fun <T, E : RootError> Result<T, E>.onSuccess(action: (T) -> Unit): Result<T, E> {
+    if (this is Result.Success) action(value)
+    return this
+}
+
+inline fun <T, E : RootError> Result<T, E>.onError(action: (E) -> Unit): Result<T, E> {
+    if (this is Result.Error) action(error)
+    return this
+}
+
+inline fun <T, R, E : RootError> Result<T, E>.map(transform: (T) -> R): Result<R, E> = when (this) {
+    is Result.Success -> Result.Success(transform(value))
+    is Result.Error -> this
+}
+
+inline fun <T, E : RootError, R : RootError> Result<T, E>.mapError(transform: (E) -> R): Result<T, R> =
+    when (this) {
+        is Result.Success -> this
+        is Result.Error -> Result.Error(transform(error))
+    }
+
+fun <T, E : RootError> Result<T, E>.getValue() = when (this) {
+    is Result.Success -> value
+    is Result.Error -> null
+}

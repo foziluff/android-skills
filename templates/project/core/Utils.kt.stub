@@ -1,0 +1,15 @@
+// core/src/main/java/{basePackagePath}/core/util/Utils.kt
+package {basePackage}.core.util
+
+import android.content.res.Resources
+import androidx.appcompat.app.AppCompatDelegate
+import {basePackage}.core.model.AppLanguage
+
+fun currentLanguage(): AppLanguage {
+    val appLocales = AppCompatDelegate.getApplicationLocales()
+    val currentLocaleTag = appLocales.get(0)
+        ?.toLanguageTag()
+        ?: Resources.getSystem().configuration.locales.get(0)?.toLanguageTag()
+
+    return AppLanguage.fromTag(currentLocaleTag)
+}

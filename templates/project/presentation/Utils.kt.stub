@@ -1,0 +1,43 @@
+// presentation/src/main/java/{basePackagePath}/presentation/util/Utils.kt
+package {basePackage}.presentation.util
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
+import {basePackage}.domain.error.NetworkError
+import {basePackage}.presentation.R
+
+internal inline fun getNetworkMessage(error: NetworkError, transformCode: (Int) -> UiText?): UiText? =
+    when (error) {
+        NetworkError.Any -> UiText.StringResource(R.string.error_unknown)
+        NetworkError.Connect -> UiText.StringResource(R.string.error_connection_refused)
+        NetworkError.IO -> UiText.StringResource(R.string.error_io_connection)
+        is NetworkError.Network -> transformCode(error.code)
+        NetworkError.SocketTimeout -> UiText.StringResource(R.string.error_timeout)
+        NetworkError.UnknownHost -> UiText.StringResource(R.string.error_no_internet)
+    }
+
+@Composable
+internal fun rememberKeyboardController(): KeyboardController {
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    return remember(keyboard, focusManager) {
+        KeyboardController(keyboard, focusManager)
+    }
+}
+
+@Stable
+internal class KeyboardController(
+    private val keyboard: SoftwareKeyboardController?,
+    private val focusManager: FocusManager
+) {
+    fun hide(clearFocus: Boolean = true) {
+        if (clearFocus) focusManager.clearFocus()
+        keyboard?.hide()
+    }
+}

@@ -1,0 +1,4 @@
+// domain/src/main/java/{basePackagePath}/domain/error/RootError.kt
+package {basePackage}.domain.error
+
+interface RootError

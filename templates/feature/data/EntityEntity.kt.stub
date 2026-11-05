@@ -1,0 +1,21 @@
+// data/src/main/java/{basePackagePath}/data/local/database/entity/{Entity}Entity.kt
+package {basePackage}.data.local.database.entity
+
+import androidx.room3.ColumnInfo
+import androidx.room3.Entity
+import androidx.room3.Index
+import androidx.room3.PrimaryKey
+
+@Entity(
+    tableName = "{entities_table}",
+    indices = [
+        Index(value = ["updated_at"], orders = [Index.Order.DESC]),
+    ]
+)
+internal data class {Entity}Entity(
+    @PrimaryKey(true) val id: Long,
+    val title: String,
+    val desc: String?,
+    @ColumnInfo("created_at") val createdAt: Long,
+    @ColumnInfo("updated_at") val updatedAt: Long
+)

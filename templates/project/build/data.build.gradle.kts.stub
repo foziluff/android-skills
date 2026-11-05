@@ -1,0 +1,69 @@
+// data/build.gradle.kts
+plugins {
+    alias(libs.plugins.android.library)
+    // KSP
+    alias(libs.plugins.ksp)
+    // Hilt
+    alias(libs.plugins.hilt.android)
+    // Kotlin serialization
+    alias(libs.plugins.jetbrains.kotlin.serialization)
+}
+
+android {
+    namespace = "{basePackage}.data"
+    compileSdk {
+        version = release(libs.versions.compileSdk.get().toInt()) {
+            minorApiLevel = libs.versions.minorApiLevel.get().toInt()
+        }
+    }
+
+    defaultConfig {
+        minSdk = libs.versions.minSdk.get().toInt()
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        // DECISION: real hosts; never commit credentials
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://staging.example.com/api/\"")
+        }
+        release {
+            buildConfigField("String", "BASE_URL", "\"https://api.example.com/api/\"")
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+kotlin {
+    jvmToolchain(libs.versions.jdkVersion.get().toInt())
+}
+
+dependencies {
+    // Modules
+    implementation(project(":domain"))
+    implementation(project(":core"))
+
+    // Room3
+    implementation(libs.bundles.room3)
+    ksp(libs.room3.compiler)
+    // Datastore
+    implementation(libs.datastore.preferences)
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    // Kotlin serialization
+    implementation(libs.kotlinx.serialization.json)
+    // Retrofit
+    implementation(libs.bundles.retrofit)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+}

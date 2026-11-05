@@ -1,0 +1,36 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/DialogMessage.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import {basePackage}.presentation.ui.theme.appColorScheme
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun DialogMessage(
+    title: String,
+    text: String,
+    buttonText: String,
+    onDismiss: () -> Unit,
+    onClick: () -> Unit,
+    buttonColor: Color = MaterialTheme.appColorScheme.onSurface
+) {
+    AppDialog(
+        title = title,
+        buttonText = buttonText,
+        onDismiss = onDismiss,
+        onClick = onClick,
+        buttonColor = buttonColor
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.space300),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}

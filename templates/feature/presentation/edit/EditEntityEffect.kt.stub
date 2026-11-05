@@ -1,0 +1,8 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/edit/Edit{Entity}Effect.kt
+package {basePackage}.presentation.feature.{area}.edit
+
+internal sealed interface Edit{Entity}Effect {
+    data object Saved : Edit{Entity}Effect
+
+    data object Deleted : Edit{Entity}Effect
+}

@@ -1,0 +1,11 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/sync/SyncUseCase.kt
+package {basePackage}.domain.usecase.sync
+
+import {basePackage}.domain.repository.SyncRepository
+import javax.inject.Inject
+
+class SyncUseCase @Inject constructor(
+    private val syncRepository: SyncRepository
+) {
+    suspend operator fun invoke() = syncRepository.sync()
+}

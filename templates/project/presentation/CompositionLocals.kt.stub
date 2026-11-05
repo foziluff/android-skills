@@ -1,0 +1,13 @@
+// presentation/src/main/java/{basePackagePath}/presentation/util/CompositionLocals.kt
+package {basePackage}.presentation.util
+
+import androidx.compose.runtime.compositionLocalOf
+import {basePackage}.presentation.model.AppSettingsUi
+
+internal val LocalAppSettings = compositionLocalOf<AppSettingsUi> {
+    noLocalProvidedFor("AppSettingsUi")
+}
+
+internal fun noLocalProvidedFor(name: String): Nothing {
+    error("CompositionLocal $name not present")
+}

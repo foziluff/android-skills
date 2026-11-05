@@ -1,0 +1,21 @@
+// data/src/main/java/{basePackagePath}/data/platform/RoomTransactionRunner.kt
+package {basePackage}.data.platform
+
+import androidx.room3.withWriteTransaction
+import {basePackage}.data.local.database.AppDatabase
+import {basePackage}.domain.gateway.TransactionRunner
+import {basePackage}.domain.gateway.TransactionScope
+import javax.inject.Inject
+
+internal class RoomTransactionRunner @Inject constructor(
+    private val appDatabase: AppDatabase
+) : TransactionRunner {
+    override suspend fun <R> withWriteTransaction(block: suspend TransactionScope<R>.() -> R): R =
+        appDatabase.withWriteTransaction {
+            val transactionScope = object : TransactionScope<R> {
+                override suspend fun rollback(result: R): Nothing =
+                    this@withWriteTransaction.rollback(result)
+            }
+            block(transactionScope)
+        }
+}

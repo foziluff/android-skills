@@ -1,0 +1,19 @@
+// domain/build.gradle.kts
+plugins {
+    alias(libs.plugins.jetbrains.kotlin.jvm)
+}
+
+kotlin {
+    jvmToolchain(libs.versions.jdkVersion.get().toInt())
+}
+
+dependencies {
+    // Paging
+    implementation(libs.paging.common)
+    // Inject
+    implementation(libs.javax.inject)
+
+    // Test
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+}

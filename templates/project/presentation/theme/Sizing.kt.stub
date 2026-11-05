@@ -1,0 +1,40 @@
+// presentation/src/main/java/{basePackagePath}/presentation/ui/theme/Sizing.kt
+package {basePackage}.presentation.ui.theme
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import {basePackage}.presentation.util.noLocalProvidedFor
+
+@Immutable
+internal data class Sizing(
+    val topAppBarHeight: Dp = 56.dp,
+    val searchTextFieldHeight: Dp = 48.dp,
+    val navBarHeight: Dp = 80.dp,
+    val dividerThin: Dp = 0.5.dp,
+    val dividerNormal: Dp = 1.dp,
+    val circleIndicatorSize: Dp = 6.dp,
+    val checkBoxSize: Dp = 42.dp,
+    val iconButtonSize: Dp = 42.dp,
+    val iconTiny: Dp = 14.dp,
+    val iconExtraSmall: Dp = 18.dp,
+    val iconSmall: Dp = 20.dp,
+    val iconNormal: Dp = 24.dp,
+    val iconMediumLarge: Dp = 30.dp,
+    val personCircleSize: Dp = 46.dp,
+    val floatingActionButton: Dp = 56.dp,
+    val badgeCircleSize: Dp = 8.dp,
+    val circularStrokeWidth: Dp = 2.dp,
+    val emptyStateIcon: Dp = 72.dp,
+    val shadowRadius: Dp = 8.dp,
+)
+
+internal val LocalSizing = staticCompositionLocalOf<Sizing> {
+    noLocalProvidedFor("Sizing")
+}
+
+internal val MaterialTheme.sizing @Composable @ReadOnlyComposable get() = LocalSizing.current

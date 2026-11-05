@@ -1,0 +1,25 @@
+// presentation/src/main/java/{basePackagePath}/presentation/navigation/Utils.kt
+package {basePackage}.presentation.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.retain.retain
+import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.setValue
+import androidx.navigation3.runtime.NavBackStack
+import kotlinx.serialization.serializer
+
+@Composable
+internal fun rememberCurrentTopLevelScreen(currentTopLevelScreen: TopLevelScreen?): TopLevelScreen? {
+    var last by retain { mutableStateOf<TopLevelScreen?>(null) }
+    if (currentTopLevelScreen != null) last = currentTopLevelScreen
+    return last
+}
+
+@Composable
+internal fun rememberNavBackStack(vararg elements: Route): NavBackStack<Route> {
+    return rememberSerializable(serializer = serializer()) {
+        NavBackStack(*elements)
+    }
+}

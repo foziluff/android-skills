@@ -1,0 +1,120 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/edit/Edit{Entity}ViewModel.kt
+package {basePackage}.presentation.feature.{area}.edit
+
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import {basePackage}.domain.error.{Entity}Error
+import {basePackage}.domain.usecase.{area}.Delete{Entities}UseCase
+import {basePackage}.domain.usecase.{area}.Observe{Entity}UseCase
+import {basePackage}.domain.usecase.{area}.Update{Entity}UseCase
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.domain.value.onError
+import {basePackage}.domain.value.onSuccess
+import {basePackage}.presentation.R
+import {basePackage}.presentation.util.UiText
+import dagger.Lazy
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+@HiltViewModel(assistedFactory = Edit{Entity}ViewModel.Factory::class)
+internal class Edit{Entity}ViewModel @AssistedInject constructor(
+    @Assisted private val {entity}Id: Long,
+    observe{Entity}UseCase: Observe{Entity}UseCase,
+    private val update{Entity}UseCase: Lazy<Update{Entity}UseCase>,
+    private val delete{Entities}UseCase: Lazy<Delete{Entities}UseCase>,
+) : ViewModel() {
+    private val _state = MutableStateFlow(Edit{Entity}State())
+    val state = _state.asStateFlow()
+
+    private val _effect = Channel<Edit{Entity}Effect>(Channel.CONFLATED)
+    val effect = _effect.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            val {entity} = observe{Entity}UseCase({entity}Id).first()
+
+            if ({entity} == null) {
+                _effect.send(Edit{Entity}Effect.Deleted)
+                return@launch
+            }
+
+            _state.update {
+                it.copy(
+                    titleValue = TextFieldValue({entity}.title, TextRange({entity}.title.length)),
+                    descValue = TextFieldValue({entity}.desc.orEmpty())
+                )
+            }
+        }
+    }
+
+    fun processIntent(intent: Edit{Entity}Intent) {
+        when (intent) {
+            is Edit{Entity}Intent.TitleChanged -> {
+                if (intent.value.text.trim().length > {Entity}InputValidator.MAX_TITLE_LENGTH) return
+
+                _state.update { it.copy(titleValue = intent.value, titleErrorUiText = null) }
+            }
+
+            is Edit{Entity}Intent.DescChanged -> {
+                if (intent.value.text.trim().length > {Entity}InputValidator.MAX_DESC_LENGTH) return
+
+                _state.update { it.copy(descValue = intent.value) }
+            }
+
+            Edit{Entity}Intent.SaveClicked -> handleSaveClicked()
+
+            Edit{Entity}Intent.Delete -> handleDelete()
+        }
+    }
+
+    private fun handleSaveClicked() {
+        _state.update { it.copy(isProcessing = true) }
+
+        val title = _state.value.titleValue.text
+        val desc = _state.value.descValue.text
+
+        viewModelScope.launch {
+            update{Entity}UseCase.get().invoke(
+                params = Update{Entity}UseCase.Params(id = {entity}Id, title = title, desc = desc)
+            ).onSuccess {
+                _effect.send(Edit{Entity}Effect.Saved)
+            }.onError { error ->
+                when (error) {
+                    {Entity}Error.TitleEmpty -> _state.update {
+                        it.copy(titleErrorUiText = UiText.StringResource(R.string.field_required))
+                    }
+
+                    {Entity}Error.TitleMaxLength,
+                    {Entity}Error.DescMaxLength,
+                    {Entity}Error.ListEmpty -> {}
+                }
+            }
+        }.invokeOnCompletion {
+            _state.update { it.copy(isProcessing = false) }
+        }
+    }
+
+    private fun handleDelete() {
+        viewModelScope.launch {
+            delete{Entities}UseCase.get().invoke(listOf({entity}Id)).onSuccess {
+                _effect.send(Edit{Entity}Effect.Deleted)
+            }
+        }
+    }
+
+    @AssistedFactory
+    internal interface Factory {
+        fun create({entity}Id: Long): Edit{Entity}ViewModel
+    }
+}

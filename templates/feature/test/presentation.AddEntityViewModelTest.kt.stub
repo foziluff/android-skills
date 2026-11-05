@@ -1,0 +1,63 @@
+// presentation/src/test/java/{basePackagePath}/presentation/feature/{area}/add/Add{Entity}ViewModelTest.kt
+package {basePackage}.presentation.feature.{area}.add
+
+import androidx.compose.ui.text.input.TextFieldValue
+import {basePackage}.domain.usecase.{area}.Create{Entity}UseCase
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.presentation.MainDispatcherRule
+import {basePackage}.presentation.fake.Fake{Entity}Repository
+import dagger.Lazy
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Rule
+import org.junit.Test
+
+internal class Add{Entity}ViewModelTest {
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val {entity}Repository = Fake{Entity}Repository()
+
+    private fun viewModel() = Add{Entity}ViewModel(
+        create{Entity}UseCase = Lazy {
+            Create{Entity}UseCase(
+                {entity}Repository = {entity}Repository,
+                validator = {Entity}InputValidator(),
+            )
+        }
+    )
+
+    @Test
+    fun `blank title shows field error and resets progress`() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.processIntent(Add{Entity}Intent.SaveClicked)
+
+        assertNotNull(viewModel.state.value.titleErrorUiText)
+        assertFalse(viewModel.state.value.isProcessing)
+    }
+
+    @Test
+    fun `title longer than the limit is ignored`() = runTest {
+        val viewModel = viewModel()
+        val tooLong = "a".repeat({Entity}InputValidator.MAX_TITLE_LENGTH + 1)
+
+        viewModel.processIntent(Add{Entity}Intent.TitleChanged(TextFieldValue(tooLong)))
+
+        assertEquals("", viewModel.state.value.titleValue.text)
+    }
+
+    @Test
+    fun `successful save emits Saved and writes once`() = runTest {
+        val viewModel = viewModel()
+        viewModel.processIntent(Add{Entity}Intent.TitleChanged(TextFieldValue("Title")))
+
+        viewModel.processIntent(Add{Entity}Intent.SaveClicked)
+
+        assertEquals(Add{Entity}Effect.Saved, viewModel.effect.first())
+        assertEquals(1, {entity}Repository.getCount())
+    }
+}

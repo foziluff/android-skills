@@ -1,0 +1,15 @@
+// data/src/main/java/{basePackagePath}/data/remote/request/{Entity}RequestDto.kt
+package {basePackage}.data.remote.request
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class {Entity}RequestDto(
+    @SerialName("server_id") val serverId: Long,
+    @SerialName("local_id") val localId: Long,
+    val title: String,
+    val desc: String?,
+    @SerialName("local_created_at") val localCreatedAt: Long,
+    @SerialName("local_updated_at") val localUpdatedAt: Long
+)

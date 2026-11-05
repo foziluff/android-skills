@@ -1,0 +1,60 @@
+// data/src/androidTest/java/{basePackagePath}/data/local/database/dao/{Entity}DaoTest.kt
+package {basePackage}.data.local.database.dao
+
+import androidx.room3.Room
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import {basePackage}.data.local.database.AppDatabase
+import {basePackage}.data.local.database.entity.{Entity}Entity
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+internal class {Entity}DaoTest {
+    private lateinit var database: AppDatabase
+    private lateinit var dao: {Entity}Dao
+
+    @Before
+    fun setUp() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        database = Room.inMemoryDatabaseBuilder<AppDatabase>(context).build()
+        dao = database.{entity}Dao()
+    }
+
+    @After
+    fun tearDown() = database.close()
+
+    @Test
+    fun updateChangesFieldsAndTimestamp() = runTest {
+        val id = dao.insert(entity())
+
+        dao.update(id = id, title = "new", desc = null, updatedAt = 2L)
+
+        val saved = dao.loadById(id).first()
+        assertEquals("new", saved?.title)
+        assertEquals(2L, saved?.updatedAt)
+    }
+
+    @Test
+    fun deleteRemovesOnlyGivenIds() = runTest {
+        val first = dao.insert(entity())
+        dao.insert(entity())
+
+        dao.delete(listOf(first))
+
+        assertEquals(1, dao.getCount())
+    }
+
+    private fun entity() = {Entity}Entity(
+        id = 0L,
+        title = "title",
+        desc = null,
+        createdAt = 1L,
+        updatedAt = 1L
+    )
+}

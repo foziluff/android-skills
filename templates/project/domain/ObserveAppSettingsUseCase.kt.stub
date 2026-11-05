@@ -1,0 +1,11 @@
+// domain/src/main/java/{basePackagePath}/domain/usecase/preferences/ObserveAppSettingsUseCase.kt
+package {basePackage}.domain.usecase.preferences
+
+import {basePackage}.domain.repository.AppSettingsRepository
+import javax.inject.Inject
+
+class ObserveAppSettingsUseCase @Inject constructor(
+    private val appSettingsRepository: AppSettingsRepository
+) {
+    operator fun invoke() = appSettingsRepository.observe()
+}

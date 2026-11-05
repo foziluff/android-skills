@@ -1,0 +1,103 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppTextField.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import {basePackage}.presentation.util.requestFocusCatch
+import kotlin.math.min
+
+@Stable
+internal val DefaultKeyboardOptions = KeyboardOptions(
+    capitalization = KeyboardCapitalization.Sentences
+)
+
+@Composable
+internal fun AppTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier,
+    errorMessage: String? = null,
+    label: String? = null,
+    placeholder: String? = null,
+    maxLength: Int = Int.MAX_VALUE,
+    textDecoration: TextDecoration? = null,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    autofocus: Boolean = false,
+    maxLines: Int = Int.MAX_VALUE,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = DefaultKeyboardOptions,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(autofocus) {
+        if (autofocus) focusRequester.requestFocusCatch()
+    }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.focusRequester(focusRequester),
+        textStyle = LocalTextStyle.current.copy(
+            textDecoration = textDecoration
+        ),
+        label = label?.let {
+            { Text(label) }
+        },
+        placeholder = placeholder?.let {
+            { Text(text = placeholder) }
+        },
+        supportingText = {
+            Row {
+                Text(
+                    text = errorMessage ?: "",
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                if (maxLength != Int.MAX_VALUE) Text(
+                    text = "${value.text.trim().length}/$maxLength",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        isError = errorMessage != null,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        maxLines = maxLines,
+        singleLine = maxLines == 1,
+        minLines = min(4, maxLines),
+        shape = MaterialTheme.shapes.small,
+        colors = OutlinedTextFieldDefaults.colors(
+            errorPlaceholderColor = MaterialTheme.colorScheme.error,
+            unfocusedTextColor = textColor,
+            focusedTextColor = textColor,
+            errorLabelColor = MaterialTheme.colorScheme.error,
+            focusedLabelColor = MaterialTheme.colorScheme.onSurface
+        )
+    )
+}
