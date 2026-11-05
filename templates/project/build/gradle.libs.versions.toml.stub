@@ -37,13 +37,13 @@ paging = "3.5.1"
 datastore = "1.2.1"
 # Appcompat
 appcompat = "1.8.0"
-# Retrofit
+# Retrofit — third-party exception (Square), chosen by the author over Ktor client
 retrofit = "3.0.0"
 # Javax inject
 javax-inject = "1"
 # Coroutines test
 coroutines = "1.11.0"
-# Detekt
+# Detekt — third-party dev-only exception: no official Kotlin MagicNumber / duplication analysis
 detekt = "2.0.0-alpha.6"
 
 [libraries]
@@ -88,7 +88,7 @@ paging-common = { module = "androidx.paging:paging-common", version.ref = "pagin
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 # Appcompat
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
-# Retrofit
+# Retrofit — third-party exception (Square), chosen by the author over Ktor client
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 # Javax inject
@@ -97,7 +97,7 @@ javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inje
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 [plugins]
-# Detekt
+# Detekt — third-party dev-only exception: no official Kotlin MagicNumber / duplication analysis
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 # Convention plugins (build-logic)
 {appName}-android-application = { id = "{appName}.android.application" }

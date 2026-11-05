@@ -62,12 +62,16 @@ Markers used in the text:
    searches the project. *Cost:* more small files; components must stay generic. Enforced by detekt, Lint and
    `checkRawValues`. → [conventions.md](references/conventions.md#dry-and-raw-values)
 
-6. **Minimum dependencies — maximum from the platform and Jetpack.** **[hypothesis]**
-   kotlinx.serialization (no Gson/Moshi), Navigation 3 (no third-party router), Keystore + DataStore (no
-   EncryptedSharedPreferences), SQLite FTS4 (no search library), WorkManager (no custom services), `BitmapFactory` (no image
-   loader), Android `PdfDocument` (no PDF library), no logging library. *Why:* fewer upgrades, smaller APK, nothing we cannot
-   read. *Trade-off:* own code to maintain (`CryptoManager`, `PdfGenerator`, sync loop).
-   → [references/build.md](references/build.md)
+6. **Minimum dependencies; when one is needed — the official one.** **[confirmed]**
+   Order of choice: Android platform / Kotlin stdlib → **AndroidX / Jetpack** → other **official** libraries of Google
+   (Dagger/Hilt, Material, Firebase, Play Services) and JetBrains (`kotlinx.*`, Ktor) → only then a third-party library,
+   with a written reason. Hence kotlinx.serialization (not Gson/Moshi), Hilt (not Koin), Room (not Realm/SQLDelight),
+   DataStore + Keystore (not third-party secure prefs), Navigation 3, coroutines/Flow (not RxJava), Paging 3, WorkManager,
+   Credential Manager, `java.time` (not Joda/ThreeTen), Crashlytics if crash reports are needed, Android Lint first.
+   *Why:* official libraries follow the platform's lifecycle, get security fixes and keep working with the next AGP/Kotlin/
+   Compose; one vendor's docs; fewer surprises in R8. *Trade-off:* sometimes less convenient APIs, own code to maintain
+   (`CryptoManager`, `PdfGenerator`, sync loop). Current third-party exceptions: Retrofit/OkHttp (Square, **[confirmed]** over Ktor) and detekt
+   (dev tool) — see [build.md](references/build.md#choosing-a-library).
 
 7. **Secure by default.** **[hypothesis]** The auth token is encrypted with an AndroidKeyStore AES-GCM key before it touches
    disk; there are no logs at all; SQL parameters are always bound; input is validated in domain before any write or request;
@@ -274,6 +278,7 @@ Details: [references/architecture.md](references/architecture.md).
 - [ ] No literal text, number, `dp`/`sp`, color, key, header or MIME type outside its home; no concatenated UI text.
 
 **Quality** (configured in the skeleton; the reference project has only Lint)
+- [ ] New dependency: official (AndroidX / Google / JetBrains) or a written reason in the catalog comment.
 - [ ] `./gradlew detekt lintDebug checkRawValues` — zero findings.
 - [ ] `./gradlew :domain:test testDebugUnitTest` — green.
 - [ ] `./gradlew assembleDebug` — no new warnings (`org.gradle.warning.mode=all`).
@@ -313,7 +318,7 @@ Details: [references/architecture.md](references/architecture.md).
 | `PendingIntent` without `FLAG_IMMUTABLE`, `exported="true"` by default | Intent hijacking |
 | Lazy list items without `key` / `contentType` | State jumps between rows; no reuse of compositions |
 | Unstable types (`List<Domain>`, `Instant` holders, lambdas recreated) in State without `@Immutable` / `ImmutableHolder` | Every parent recomposition recomposes the whole subtree |
-| New third-party library "for convenience" | Minimum dependencies; solve with platform/Jetpack first [hypothesis] |
+| A third-party library when the platform, AndroidX or an official Google/JetBrains library covers the need | Official first **[confirmed]**; third-party only with a written reason in the catalog comment |
 | Copy-pasting a ViewModel block (voice recorder, multi-select) into another screen | DRY: extract (legacy: voice recording in 4 ViewModels, multi-select in 3) |
 | A second copy of any UI fragment, even a padded button or two fields | Second use → component; a change must be made in one place **[confirmed]** |
 | The same color / size / text / number written in two places | One home per value: color role, token, string resource, `const val` **[confirmed]** |

@@ -238,6 +238,7 @@ a fake that throws for half of the interface (I — split the port), a ViewModel
 | Decision | Why | Cost |
 |---|---|---|
 | Pure-JVM `:domain` | Rules testable without Android, no `Context` leaks | Mapping layers |
+| Official libraries first (AndroidX → Google/JetBrains → third-party) | Platform lifecycle, security fixes, compatibility with next AGP/Kotlin | Sometimes less convenient APIs |
 | Use case for every ViewModel call | One dependency type in presentation; rules have an obvious home | Many one-line classes |
 | Validator + Specification split | Stateless checks reusable by UI; stateful ones run in a transaction | Two classes per entity |
 | Repository interfaces in domain, `internal` impls | Presentation cannot reach storage | Bindings boilerplate |

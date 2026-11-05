@@ -176,9 +176,42 @@ The reference project has only Lint with default settings.
 ./gradlew :data:kspDebugKotlin                 # quick check of Room/Hilt code generation
 ```
 
+<a id="choosing-a-library"></a>
+## Choosing a library **[confirmed]**
+
+Order: **platform / Kotlin stdlib → AndroidX (Jetpack) → official Google or JetBrains library → third-party** (only with a
+reason written next to it in `libs.versions.toml`).
+
+| Need | Use (official) | Not | In skeleton / reference |
+|---|---|---|---|
+| UI | Jetpack Compose + Material 3, `material-icons-extended` | third-party UI kits | ✅ |
+| Navigation | Navigation 3 (`androidx.navigation3`) | Voyager, Decompose, Compose Destinations | ✅ |
+| DI | Hilt (Dagger, Google), `androidx.hilt` | Koin, Kodein | ✅ |
+| Async | kotlinx.coroutines + Flow | RxJava | ✅ |
+| JSON | kotlinx.serialization | Gson, Moshi, Jackson | ✅ |
+| Database | Room | Realm, SQLDelight, ObjectBox | ✅ |
+| Key-value settings | DataStore | MMKV, Paper, plain SharedPreferences | ✅ |
+| Secrets | AndroidKeyStore (`javax.crypto`) + DataStore | third-party "secure prefs" | ✅ |
+| Lists from DB | Paging 3 | custom paginators | ✅ |
+| Background work | WorkManager | custom services, Evernote job | ✅ (optional/sync) |
+| Sign-in | Credential Manager + Google ID | deprecated Google Sign-In SDK | reference ✅ |
+| Biometrics | `androidx.biometric` | third-party wrappers | reference ✅ |
+| Splash | `androidx.core:core-splashscreen` | custom splash Activity | ✅ |
+| Date / time | `java.time` (minSdk ≥ 26) | Joda-Time, ThreeTenABP | ✅ |
+| Push / analytics / crashes | Firebase (Messaging, Analytics, Crashlytics) | Sentry, OneSignal, AppCenter | reference: Messaging + Analytics |
+| HTTP | **Retrofit + OkHttp (Square) — third-party exception** **[confirmed]**: the author keeps Retrofit over the official Ktor client | Ktor client, Volley, Fuel | ✅ |
+| Images | platform (`ImageDecoder`, `BitmapFactory`) while needs are simple | — | reference ✅; for remote image lists there is no official loader → Coil, with a reason **[question]** |
+| Tests | JUnit 4 + `androidx.test`, `kotlinx-coroutines-test`, Compose UI test | MockK, Mockito, Turbine (fakes + `first()` instead) | ✅ |
+| Static analysis | Android Lint | — | ✅ |
+| Kotlin static analysis | **detekt — third-party dev-only exception** (no official equivalent for `MagicNumber` / duplication) | ktlint, Spotless | ✅ (not shipped in the APK) |
+| Logging | none in release; if needed — `android.util.Log` behind `BuildConfig.DEBUG` | Timber | reference: no logging |
+
+(legacy in the reference: `mXparser` for the calculator — third-party, kept because there is no official expression parser.)
+
 ## Adding a dependency
 
-1. First check the platform/Jetpack (philosophy #6). Write down why it is needed.
+1. Walk the order above (philosophy #6): platform → AndroidX → official Google/JetBrains → third-party. For a third-party
+   library write the reason as the `# Group` comment in the catalog (`# Retrofit — no official REST client with converters`).
 2. Add version + library (+ bundle if grouped) to the catalog with a `# Group` comment.
 3. Add to the **lowest** module that needs it (`implementation`, never `api`).
 4. Check R8 consumer rules exist; build `assembleRelease`.
