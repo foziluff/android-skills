@@ -41,7 +41,7 @@ internal fun AppButton(
     CompositionLocalProvider(LocalContentColor provides contentColor) {
         GestureAnimationContent(
             isPressed = isPressed,
-            scaleEffect = 0.02f
+            scaleEffect = BUTTON_PRESS_SCALE_EFFECT
         ) {
             Button(
                 onClick = onClick,

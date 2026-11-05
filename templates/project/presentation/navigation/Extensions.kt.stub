@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavBackStack
 
 private var lastNavTime = 0L
 private const val NAV_DEBOUNCE = DEFAULT_TRANSITION_DURATION_MILLISECOND
+private const val TOP_LEVEL_NAV_DEBOUNCE = NAV_DEBOUNCE / 4
 
 internal fun NavBackStack<Route>.navigateSingleton(screen: Route) {
     val now = System.currentTimeMillis()
@@ -24,7 +25,7 @@ internal fun NavBackStack<Route>.currentScreen() = lastOrNull()
 
 internal fun NavBackStack<Route>.navigateTopLevel(screen: TopLevelScreen) {
     val now = System.currentTimeMillis()
-    if (now - lastNavTime < NAV_DEBOUNCE / 4 || screen == lastOrNull()) return
+    if (now - lastNavTime < TOP_LEVEL_NAV_DEBOUNCE || screen == lastOrNull()) return
 
     lastNavTime = now
 

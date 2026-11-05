@@ -100,7 +100,7 @@ internal fun {Entities}Screen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(vertical = MaterialTheme.spacing.space100)
         ) {
-            if (isMessageContents) item("message_content") {
+            if (isMessageContents) item(MESSAGE_CONTENT_KEY) {
                 MessageContent(
                     title = stringResource(
                         if (state.isSearching) R.string.empty_search_title else R.string.empty_{entities_table}_title
@@ -127,7 +127,7 @@ internal fun {Entities}Screen(
             items(
                 count = {entities}.itemCount,
                 key = {entities}.itemKey { it.id },
-                contentType = { "{entity_snake}" }
+                contentType = { TASK_ITEM_CONTENT_TYPE }
             ) { index ->
                 val {entity} = {entities}[index]
 
@@ -177,3 +177,5 @@ private fun {Entity}Row(
 }
 
 private const val EMPTY_STATE_HEIGHT_FRACTION = 0.8f
+private const val MESSAGE_CONTENT_KEY = "message_content"
+private const val TASK_ITEM_CONTENT_TYPE = "{entity_snake}"

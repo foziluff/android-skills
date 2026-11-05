@@ -1,0 +1,56 @@
+// presentation/src/main/java/{basePackagePath}/presentation/feature/{area}/component/{Entity}Form.kt
+package {basePackage}.presentation.feature.{area}.component
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
+import {basePackage}.domain.validation.{Entity}InputValidator
+import {basePackage}.presentation.R
+import {basePackage}.presentation.component.AppTextField
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun {Entity}Form(
+    titleValue: TextFieldValue,
+    descValue: TextFieldValue,
+    titleErrorMessage: String?,
+    onTitleChange: (TextFieldValue) -> Unit,
+    onDescChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier,
+    autofocus: Boolean = false
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = MaterialTheme.spacing.space300)
+    ) {
+        Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        AppTextField(
+            value = titleValue,
+            onValueChange = onTitleChange,
+            modifier = Modifier.fillMaxWidth(),
+            errorMessage = titleErrorMessage,
+            label = stringResource(R.string.required_label, stringResource(R.string.{entity_snake}_title)),
+            maxLength = {Entity}InputValidator.MAX_TITLE_LENGTH,
+            maxLines = 1,
+            autofocus = autofocus
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.space200))
+        AppTextField(
+            value = descValue,
+            onValueChange = onDescChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.{entity_snake}_desc),
+            maxLength = {Entity}InputValidator.MAX_DESC_LENGTH
+        )
+    }
+}

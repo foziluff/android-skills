@@ -5,7 +5,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import {basePackage}.domain.usecase.{area}.Create{Entity}UseCase
 import {basePackage}.domain.validation.{Entity}InputValidator
 import {basePackage}.presentation.MainDispatcherRule
-import {basePackage}.presentation.fake.Fake{Entity}Repository
+import {basePackage}.domain.fake.Fake{Entity}Repository
 import dagger.Lazy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

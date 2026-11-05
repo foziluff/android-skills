@@ -1,23 +1,10 @@
 // core/build.gradle.kts
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.{appName}.android.library)
 }
 
 android {
     namespace = "{basePackage}.core"
-    compileSdk {
-        version = release(libs.versions.compileSdk.get().toInt()) {
-            minorApiLevel = libs.versions.minorApiLevel.get().toInt()
-        }
-    }
-
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-}
-
-kotlin {
-    jvmToolchain(libs.versions.jdkVersion.get().toInt())
 }
 
 dependencies {

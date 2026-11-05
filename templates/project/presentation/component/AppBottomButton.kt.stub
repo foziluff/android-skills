@@ -1,0 +1,39 @@
+// presentation/src/main/java/{basePackagePath}/presentation/component/AppBottomButton.kt
+package {basePackage}.presentation.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import {basePackage}.presentation.ui.theme.spacing
+
+@Composable
+internal fun AppBottomButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .imePadding()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(
+                start = MaterialTheme.spacing.space300,
+                end = MaterialTheme.spacing.space300,
+                top = MaterialTheme.spacing.space100,
+                bottom = MaterialTheme.spacing.space200
+            )
+    ) {
+        AppButton(
+            text = text,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = enabled,
+            onClick = onClick
+        )
+    }
+}

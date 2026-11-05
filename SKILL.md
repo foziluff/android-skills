@@ -10,12 +10,9 @@ The rules were extracted from the reference project **DebtNote** (an offline not
 the text point to it as evidence (`com.wigroup.*`). In another project replace the base package and names — the templates
 use placeholders (`{basePackage}`, `{App}`, `{Entity}`).
 
-What is universal and what is optional:
-- **Core (every app):** module layout, layers, MVI screens, `Result` errors, `UiText`, theme tokens, components, navigation,
-  DI, Room/DataStore/Retrofit conventions, security and performance rules, tests, git.
-- **Optional capabilities (only if the product has them):** offline two-way sync (WorkManager), Free/Pro quotas,
-  authentication with a token, app lock, per-app languages. Each is marked *(if the app …)* and has its own templates in
-  `templates/optional/`.
+**Core** (every app): modules, layers, MVI, `Result` errors, `UiText`, DRY / no raw values, tokens, components, navigation,
+DI, data conventions, security, performance, tests, git. **Optional** (only if the product has it), marked *(if the app …)*:
+offline sync, Free/Pro quotas, token auth, app lock, per-app languages — templates in `templates/optional/`.
 
 Markers used in the text:
 - **[confirmed]** — the author confirmed the decision personally;
@@ -55,12 +52,15 @@ Markers used in the text:
    *Why:* the compiler lists every failure the screen must handle; domain stays language-free. *Cost:* verbose `when` branches.
    → [references/error-handling.md](references/error-handling.md)
 
-5. **One source of truth for every value and rule.** **[hypothesis]**
-   Limits live once in domain (`NoteInputValidator.MAX_TEXT_LENGTH`, `CanAddNoteSpecification.LIMIT_FREE`) and the UI reuses
-   them (`maxLength = NoteInputValidator.MAX_TEXT_LENGTH`); spacing/sizing/colors only via `MaterialTheme.spacing / .sizing /
-   .appColorScheme`; every user-visible string is a resource in every shipped locale; fixed sets are enums or value classes.
-   *Why:* changing a limit or a token is a one-line change, never a hunt.
-   → [references/conventions.md](references/conventions.md)
+5. **Maximum DRY and SOLID: every change is made in exactly one place.** **[confirmed]**
+   **Second use → extract**, however small: color → color role, size → token, text → string resource, number → `const val`,
+   UI piece → component (even a padded button — `AppBottomButton`, two fields — `{Entity}Form`), logic → function / mapper /
+   use case, build config → convention plugin, fake → `testFixtures`. **No raw values** in logic or screens — literal design
+   values live only in `ui/theme/*`, texts only in `strings.xml`. **SOLID** is how the layers are cut
+   ([architecture.md](references/architecture.md#solid)).
+   *Why:* when a brand color, padding, limit, text or button changes, one file is edited and every screen follows — nobody
+   searches the project. *Cost:* more small files; components must stay generic. Enforced by detekt, Lint and
+   `checkRawValues`. → [conventions.md](references/conventions.md#dry-and-raw-values)
 
 6. **Minimum dependencies — maximum from the platform and Jetpack.** **[hypothesis]**
    kotlinx.serialization (no Gson/Moshi), Navigation 3 (no third-party router), Keystore + DataStore (no
@@ -191,6 +191,18 @@ Details: [references/architecture.md](references/architecture.md).
 - Ui models carry pre-formatted strings (`amountString`, `createdAtString`) built once in `toUi()`.
   → [performance.md](references/performance.md)
 
+### DRY and raw values **[confirmed]**
+- Extract at the **second** use, not the third. Scope of the extraction = scope of its users: one screen → `private` in
+  the file; one feature → `feature/{area}/component/`, `mapper/{Entity}ErrorMapper.kt`; several features →
+  `presentation/component/`, `util/`, theme tokens; several layers → domain constants/use cases; several modules →
+  `build-logic` / `testFixtures`. → [conventions.md](references/conventions.md#dry-and-raw-values)
+- UI text is never concatenated (`label + " *"`, `"$count/$max"`): use a format resource (`required_label`,
+  `text_length_counter`) so word order and punctuation can change per locale.
+- Literal design values (`Color(0x…)`, `16.dp`, `14.sp`) exist **only** in `ui/theme/*`; a new value = a new token.
+- Duplicated logic in ViewModels (input caps, error → text) goes to extensions/mappers (`TextFieldValue.exceeds`,
+  `{Entity}Error.toTitleErrorUiText()`).
+- Lists of the same thing are data, not copy-paste: a row of settings items is a list + one item component.
+
 ### Style
 - Named arguments for anything non-obvious (`params = …`, `intent = …`, `currentCount = …`); trailing lambda for `onClick`.
 - `companion object { const val UPPER_SNAKE }` for every number/string with meaning; no magic numbers
@@ -202,7 +214,11 @@ Details: [references/architecture.md](references/architecture.md).
 
 ### Build
 - Versions only in `gradle/libs.versions.toml` (including `compileSdk/minSdk/targetSdk/jdkVersion` under `# Variables`);
-  related libraries are grouped into `[bundles]`. → [build.md](references/build.md)
+  related libraries are grouped into `[bundles]`.
+- Shared module configuration lives in `build-logic` convention plugins (`{appName}.android.library`,
+  `.android.application`, `.android.compose`, `.jvm.library`, `.hilt`) — a module script holds only its namespace and its own
+  dependencies. (legacy: the reference project repeats the `android {}` block in every module.)
+  → [build.md](references/build.md)
 
 ### Tests
 - JVM unit tests for validators, specifications, use cases (in-memory fakes of domain interfaces) and ViewModels with
@@ -253,10 +269,14 @@ Details: [references/architecture.md](references/architecture.md).
 - [ ] Secrets/URLs are not added to code or VCS; `PendingIntent` is immutable; new manifest components are `exported="false"`
   unless they must be public. Full list: [security.md](references/security.md#security-checklist-every-change).
 
-**Quality** (commands that work in the project as configured)
-- [ ] `./gradlew assembleDebug` — builds with no new warnings (`org.gradle.warning.mode=all`).
-- [ ] `./gradlew lintDebug` — no new issues.
-- [ ] `./gradlew testDebugUnitTest :domain:test` — green.
+**DRY / raw values**
+- [ ] Nothing new is used twice without a single home (component, token, color role, string, const, function, mapper).
+- [ ] No literal text, number, `dp`/`sp`, color, key, header or MIME type outside its home; no concatenated UI text.
+
+**Quality** (configured in the skeleton; the reference project has only Lint)
+- [ ] `./gradlew detekt lintDebug checkRawValues` — zero findings.
+- [ ] `./gradlew :domain:test testDebugUnitTest` — green.
+- [ ] `./gradlew assembleDebug` — no new warnings (`org.gradle.warning.mode=all`).
 - [ ] `./gradlew assembleRelease` — R8 passes (`optimization.enable = true`), keep rules updated if reflection was added.
 - [ ] Android Studio *Reformat Code* with the official Kotlin style (`kotlin.code.style=official`), LF line endings.
 
@@ -295,6 +315,12 @@ Details: [references/architecture.md](references/architecture.md).
 | Unstable types (`List<Domain>`, `Instant` holders, lambdas recreated) in State without `@Immutable` / `ImmutableHolder` | Every parent recomposition recomposes the whole subtree |
 | New third-party library "for convenience" | Minimum dependencies; solve with platform/Jetpack first [hypothesis] |
 | Copy-pasting a ViewModel block (voice recorder, multi-select) into another screen | DRY: extract (legacy: voice recording in 4 ViewModels, multi-select in 3) |
+| A second copy of any UI fragment, even a padded button or two fields | Second use → component; a change must be made in one place **[confirmed]** |
+| The same color / size / text / number written in two places | One home per value: color role, token, string resource, `const val` **[confirmed]** |
+| Concatenated UI text (`label + " *"`, `"$a $b"`) | Format resource with arguments; word order differs per locale |
+| Literal `Color(0x…)`, `dp`, `sp` outside `ui/theme` | `checkRawValues` fails the build; tokens are the only design source |
+| Repeating `android {}` / Hilt / Compose setup in module scripts | One convention plugin in `build-logic` |
+| Copying a fake into another module's tests | `testFixtures` of the module that owns the interface |
 | `Co-Authored-By`/"Generated with" in commits | No traces of AI in git **[confirmed]** |
 
 ---
@@ -311,7 +337,8 @@ Details: [references/architecture.md](references/architecture.md).
 | A new error, how it reaches the screen, texts, logging | [references/error-handling.md](references/error-handling.md) |
 | Token storage, crypto, manifest, backups, release, logs | [references/security.md](references/security.md) |
 | Recomposition, lists, formatting cost, startup, memory | [references/performance.md](references/performance.md) |
-| Gradle, version catalog, SDK levels, R8, locales, signing | [references/build.md](references/build.md) |
+| Gradle, version catalog, convention plugins, detekt / Lint / `checkRawValues`, R8, locales, signing | [references/build.md](references/build.md) |
+| What counts as a raw value and where it lives; when to extract a component | [references/conventions.md](references/conventions.md#dry-and-raw-values) |
 | What and how to test | [references/testing.md](references/testing.md) |
 | Reference code with explanations and anti-examples | [references/examples.md](references/examples.md) |
 | Starting a new project from an empty folder | [templates/README.md](templates/README.md#a-new-project) |

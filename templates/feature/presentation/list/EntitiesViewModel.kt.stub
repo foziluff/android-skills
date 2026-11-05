@@ -9,6 +9,7 @@ import androidx.paging.map
 import {basePackage}.domain.usecase.{area}.Observe{Entities}PagedUseCase
 import {basePackage}.domain.validation.{Entity}InputValidator
 import {basePackage}.presentation.mapper.toUi
+import {basePackage}.presentation.util.exceeds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +42,7 @@ internal class {Entities}ViewModel @Inject constructor(
             }
 
             is {Entities}Intent.SearchQueryChanged -> {
-                if (intent.searchQuery.text.trim().length > {Entity}InputValidator.MAX_TITLE_LENGTH) return
+                if (intent.searchQuery.exceeds({Entity}InputValidator.MAX_TITLE_LENGTH)) return
 
                 _state.update { it.copy(searchQuery = intent.searchQuery) }
             }

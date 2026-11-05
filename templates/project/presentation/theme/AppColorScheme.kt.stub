@@ -1,4 +1,4 @@
-// presentation/src/main/java/{basePackagePath}/presentation/ui/theme/AppTheme.kt
+// presentation/src/main/java/{basePackagePath}/presentation/ui/theme/AppColorScheme.kt
 package {basePackage}.presentation.ui.theme
 
 import androidx.compose.material3.MaterialTheme

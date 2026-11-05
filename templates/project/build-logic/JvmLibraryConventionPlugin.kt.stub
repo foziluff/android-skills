@@ -1,0 +1,15 @@
+// build-logic/convention/src/main/kotlin/JvmLibraryConventionPlugin.kt
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class JvmLibraryConventionPlugin : Plugin<Project> {
+    override fun apply(target: Project) = with(target) {
+        pluginManager.apply(libs.findPlugin("jetbrains-kotlin-jvm").get().get().pluginId)
+        pluginManager.apply(JAVA_TEST_FIXTURES)
+        configureKotlin()
+    }
+
+    private companion object {
+        const val JAVA_TEST_FIXTURES = "java-test-fixtures"
+    }
+}

@@ -30,7 +30,9 @@ internal fun PullToRefresh(
             isRefreshing = isRefreshing,
             modifier = Modifier.align(Alignment.TopCenter),
             containerColor = MaterialTheme.colorScheme.outlineVariant,
-            color = MaterialTheme.colorScheme.onBackground.copy(0.8f)
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = INDICATOR_ALPHA)
         )
     }
 }
+
+private const val INDICATOR_ALPHA = 0.8f

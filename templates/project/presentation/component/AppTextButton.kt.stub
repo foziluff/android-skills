@@ -29,7 +29,7 @@ internal fun AppTextButton(
     GestureAnimationContent(
         isPressed = isPressed,
         modifier = modifier,
-        scaleEffect = 0.02f
+        scaleEffect = BUTTON_PRESS_SCALE_EFFECT
     ) {
         TextButton(
             onClick = onClick,

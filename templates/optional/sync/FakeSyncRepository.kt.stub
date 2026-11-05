@@ -1,0 +1,17 @@
+// domain/src/testFixtures/kotlin/{basePackagePath}/domain/fake/FakeSyncRepository.kt
+package {basePackage}.domain.fake
+
+import {basePackage}.domain.repository.SyncRepository
+import {basePackage}.domain.value.SyncState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+
+class FakeSyncRepository : SyncRepository {
+    var syncCalls = 0
+
+    override fun observeState(): Flow<SyncState> = emptyFlow()
+
+    override suspend fun sync() {
+        syncCalls++
+    }
+}

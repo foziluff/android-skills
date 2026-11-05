@@ -1,4 +1,4 @@
-// domain/src/test/java/{basePackagePath}/domain/fake/Fake{Entity}Repository.kt
+// domain/src/testFixtures/kotlin/{basePackagePath}/domain/fake/Fake{Entity}Repository.kt
 package {basePackage}.domain.fake
 
 import androidx.paging.PagingData
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 
-internal class Fake{Entity}Repository : {Entity}Repository {
+class Fake{Entity}Repository : {Entity}Repository {
     val {entities} = MutableStateFlow<Map<Long, {Entity}>>(emptyMap())
     private var nextId = 1L
 

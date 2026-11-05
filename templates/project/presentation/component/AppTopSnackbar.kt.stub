@@ -80,7 +80,10 @@ internal fun AppTopSnackbar(
             )
             .dropShadow(
                 shape = MaterialTheme.shapes.small,
-                shadow = Shadow(radius = MaterialTheme.sizing.shadowRadius, color = MaterialTheme.colorScheme.outlineVariant)
+                shadow = Shadow(
+                    radius = MaterialTheme.sizing.shadowRadius,
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
             )
             .background(
                 color = MaterialTheme.colorScheme.inverseSurface,

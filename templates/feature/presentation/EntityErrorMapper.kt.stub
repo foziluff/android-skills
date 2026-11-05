@@ -1,0 +1,13 @@
+// presentation/src/main/java/{basePackagePath}/presentation/mapper/{Entity}ErrorMapper.kt
+package {basePackage}.presentation.mapper
+
+import {basePackage}.domain.error.{Entity}Error
+import {basePackage}.presentation.R
+import {basePackage}.presentation.util.UiText
+
+internal fun {Entity}Error.toTitleErrorUiText(): UiText? = when (this) {
+    {Entity}Error.TitleEmpty -> UiText.StringResource(R.string.field_required)
+    {Entity}Error.TitleMaxLength,
+    {Entity}Error.DescMaxLength,
+    {Entity}Error.ListEmpty -> null
+}

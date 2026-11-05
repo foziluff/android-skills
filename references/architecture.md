@@ -219,6 +219,20 @@ Rules:
 
 ---
 
+<a id="solid"></a>
+## SOLID in this architecture **[confirmed]**
+
+| Principle | How the code applies it | Example |
+|---|---|---|
+| **S** — one reason to change | one job per layer and per class: screen renders, ViewModel maps intents to state, use case runs one scenario, validator checks input, repository moves data, mapper converts | `CreateNoteUseCase` vs `NoteInputValidator` vs `NoteRepositoryImpl` |
+| **O** — extend without editing callers | new failure = new `data object` in a sealed error; new screen = new route + `entry<…>`; components grow by parameters with defaults | `AppButton(progress = …, icon = …)` |
+| **L** — any implementation can replace a port | every port has an in-memory fake that the use cases and ViewModels accept unchanged | `FakeTaskItemRepository` in `testFixtures` |
+| **I** — small ports | a port per capability, not a "god" data source | `TokenGateway`, `TransactionRunner`, `SyncRepository`, one repository per entity |
+| **D** — depend on abstractions | use cases and ViewModels depend on domain interfaces; Hilt binds `internal` implementations in `:data`/`:app` | `@[Binds Singleton] fun bindNoteRepository(impl: NoteRepositoryImpl): NoteRepository` |
+
+Violations to watch for: a ViewModel doing formatting and validation (S), a `when (screen)` growing in a shared component (O),
+a fake that throws for half of the interface (I — split the port), a ViewModel importing `:data` (D).
+
 ## Decision summary
 
 | Decision | Why | Cost |

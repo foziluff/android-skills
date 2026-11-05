@@ -17,10 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
+import {basePackage}.presentation.R
 import {basePackage}.presentation.util.requestFocusCatch
 import kotlin.math.min
 
@@ -76,7 +78,7 @@ internal fun AppTextField(
                     style = MaterialTheme.typography.bodySmall
                 )
                 if (maxLength != Int.MAX_VALUE) Text(
-                    text = "${value.text.trim().length}/$maxLength",
+                    text = stringResource(R.string.text_length_counter, value.text.trim().length, maxLength),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -90,7 +92,7 @@ internal fun AppTextField(
         keyboardActions = keyboardActions,
         maxLines = maxLines,
         singleLine = maxLines == 1,
-        minLines = min(4, maxLines),
+        minLines = min(DEFAULT_MIN_LINES, maxLines),
         shape = MaterialTheme.shapes.small,
         colors = OutlinedTextFieldDefaults.colors(
             errorPlaceholderColor = MaterialTheme.colorScheme.error,
@@ -101,3 +103,5 @@ internal fun AppTextField(
         )
     )
 }
+
+private const val DEFAULT_MIN_LINES = 4

@@ -60,8 +60,9 @@ internal class MainDispatcherRule(
 ## Structure and naming
 
 ```
+domain/src/testFixtures/kotlin/com/wigroup/domain/
+  └─ fake/FakeNoteRepository.kt, FakeUserRepository.kt, FakeSyncRepository.kt, FakeTransactionRunner.kt   (public)
 domain/src/test/java/com/wigroup/domain/
-  ├─ fake/FakeNoteRepository.kt, FakeUserRepository.kt, FakeSyncRepository.kt, FakeTransactionRunner.kt
   ├─ validation/NoteInputValidatorTest.kt
   ├─ specification/CanAddNoteSpecificationTest.kt
   └─ usecase/note/CreateNoteUseCaseTest.kt
@@ -71,8 +72,9 @@ presentation/src/test/java/com/wigroup/presentation/
 - Test class: `{ClassUnderTest}Test`, `internal`.
 - Method names in backticks describing behaviour: `` fun `blank text returns Empty`() ``.
 - Arrange / act / assert separated by blank lines; one behaviour per test.
-- Fakes live in `src/test/.../fake/` of each module that needs them (the skeleton keeps a small copy of
-  `Fake{Entity}Repository` in `presentation/src/test`); move to `testFixtures` only when copies start to diverge.
+- Fakes of domain ports live **once** in `domain/src/testFixtures/kotlin/.../fake/` (public classes; `:domain` applies
+  `java-test-fixtures` via the `{appName}.jvm.library` convention plugin); other modules use
+  `testImplementation(testFixtures(project(":domain")))`. Never copy a fake into another module **[confirmed: DRY]**.
 
 ## What to test (by priority)
 

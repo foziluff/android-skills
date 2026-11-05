@@ -4,9 +4,9 @@ Three sets:
 
 | Folder | What | Verified |
 |---|---|---|
-| `project/` | Skeleton of a new app: Gradle (5 modules), version catalog, manifest, resources, `Result`/`NetworkError`, `UiText`, `SnackbarController`, theme + tokens, `App*` components, Navigation 3 graph, `MainScreen`/`MainViewModel`, settings in DataStore, Room + `TransactionRunner`, Retrofit + `safeApiCall`, Keystore `CryptoManager` + `TokenGateway` | ✅ generated into an empty folder with other names, `assembleDebug`, `assembleRelease` (R8), unit tests green |
-| `feature/` | One entity with Add / Edit / List screens: domain (entity, error, validator, repository, 5 use cases), data (Room entity, FTS, DAO, mapper, repository), presentation (Ui, 3 screens × State/Intent/Effect/Event/ViewModel/Screen), tests | ✅ same build; 9 unit tests (validator, use case, ViewModel) |
-| `optional/` | `sync/` — offline two-way sync with WorkManager; `quota/` — Free/Pro limits | sync ✅ domain/data/app compiled + tests (pull-to-refresh UI wiring is a snippet) / quota — not compiled (needs the app's source of the paid flag) |
+| `project/` | Skeleton of a new app: Gradle (5 modules) + `build-logic` convention plugins, version catalog, `config/detekt`, `config/lint`, `checkRawValues` task, manifest, resources, `Result`/`NetworkError`, `UiText`, `SnackbarController`, theme + tokens, `App*` components (incl. `AppBottomButton`), Navigation 3 graph, `MainScreen`/`MainViewModel`, settings in DataStore, Room + `TransactionRunner`, Retrofit + `safeApiCall`, Keystore `CryptoManager` + `TokenGateway` | ✅ generated into an empty folder with other names: `assembleDebug`, `assembleRelease` (R8), `detekt`, `lintDebug`, `checkRawValues` — zero findings, unit tests green |
+| `feature/` | One entity with Add / Edit / List screens: domain (entity, error, validator, repository, 5 use cases), data (Room entity, FTS, DAO, mapper, repository), presentation (Ui, shared `{Entity}Form`, `{Entity}ErrorMapper`, 3 screens × State/Intent/Effect/Event/ViewModel/Screen), tests + `testFixtures` fake | ✅ same build and checks; 9 unit tests (validator, use case, ViewModel) |
+| `optional/` | `sync/` — offline two-way sync with WorkManager; `quota/` — Free/Pro limits | sync ✅ applied to the generated app: build, detekt, Lint, `checkRawValues`, tests (pull-to-refresh UI wiring is a snippet) / quota — not compiled (needs the app's source of the paid flag) |
 
 Every `.kt.stub` / `.kts.stub` / `.xml.stub` / `.toml.stub` starts with **one comment line holding the target path** —
 create the file there and delete that line. `*.snippet.stub` files are fragments to paste into existing files.
@@ -44,9 +44,10 @@ create the file there and delete that line. `*.snippet.stub` files are fragments
 4. Decide: real `BASE_URL`s in `data/build.gradle.kts` (debug/release), launcher icon in the manifest, palette in
    `ui/theme/Color.kt` + `Theme.kt`, locales (`localeFilters`, `resources.properties`, `values-*/strings.xml`,
    `AppLanguage`), backup policy (`backup_rules.xml`, `data_extraction_rules.xml`).
-5. Build and test:
+5. Build and check:
    ```bash
    ./gradlew assembleDebug
+   ./gradlew detekt lintDebug checkRawValues
    ./gradlew :domain:test testDebugUnitTest
    ./gradlew assembleRelease
    ```
@@ -72,13 +73,15 @@ biometric lock, WorkManager sync, PDF export, analytics.
 | 8 | `data/mapper/{Entity}Mapper.kt` | [feature/data/EntityMapper.kt.stub](feature/data/EntityMapper.kt.stub) |
 | 9 | `data/repository/{Entity}RepositoryImpl.kt` | [feature/data/EntityRepositoryImpl.kt.stub](feature/data/EntityRepositoryImpl.kt.stub) |
 | 10 | Wiring: `@Binds` + `provide{Entity}Dao` in `DataModule`, entities + `abstract fun {entity}Dao()` in `AppDatabase` (**version + 1 and a `Migration`**), `toUi()` in `CommonMapper` | see the `{Entity}` lines in [project/data/DataModule.kt.stub](project/data/DataModule.kt.stub), [project/data/AppDatabase.kt.stub](project/data/AppDatabase.kt.stub), [project/presentation/CommonMapper.kt.stub](project/presentation/CommonMapper.kt.stub) |
-| 11 | `presentation/model/{Entity}Ui.kt` | [feature/presentation/EntityUi.kt.stub](feature/presentation/EntityUi.kt.stub) |
+| 11 | `presentation/model/{Entity}Ui.kt`, `presentation/mapper/{Entity}ErrorMapper.kt` | [EntityUi](feature/presentation/EntityUi.kt.stub), [EntityErrorMapper](feature/presentation/EntityErrorMapper.kt.stub) |
+| 11a | `presentation/feature/{area}/component/{Entity}Form.kt` — the fields shared by Add and Edit | [feature/presentation/EntityForm.kt.stub](feature/presentation/EntityForm.kt.stub) |
 | 12 | `presentation/feature/{area}/add/…` (6 files) | [feature/presentation/add/](feature/presentation/add) |
 | 13 | `presentation/feature/{area}/edit/…` (6 files, assisted `{entity}Id`) | [feature/presentation/edit/](feature/presentation/edit) |
 | 14 | `presentation/feature/{area}/list/…` (5 files) | [feature/presentation/list/](feature/presentation/list) |
 | 15 | Routes in `Screen.kt` + `entry<…>` in `NavGraph.kt` | the `{Entity}` parts of [project/presentation/navigation/Screen.kt.stub](project/presentation/navigation/Screen.kt.stub), [NavGraph.kt.stub](project/presentation/navigation/NavGraph.kt.stub) |
 | 16 | Strings in **every** `values*/strings.xml` | the `{entity_snake}` / `{entities_table}` keys of [project/presentation/res/strings.xml.stub](project/presentation/res/strings.xml.stub) |
-| 17 | Tests | [feature/test/](feature/test) (`domain.*` → `domain/src/test`, `presentation.*` → `presentation/src/test`, `data.*` → `data/src/androidTest`) |
+| 17 | Tests | [feature/test/](feature/test) (`domain.Fake*` → `domain/src/testFixtures`, other `domain.*` → `domain/src/test`, `presentation.*` → `presentation/src/test`, `data.*` → `data/src/androidTest`) |
+| 18 | DRY pass | anything the new feature repeats from another one (a row, a dialog, a mapper) → extract now ([references/conventions.md](../references/conventions.md#dry-and-raw-values)) |
 
 A second top-level list (tab) = another `TopLevelScreen` object; the `NavBar` component is not in the skeleton (reference:
 `presentation/component/NavBar.kt` in DebtNote).
@@ -89,7 +92,8 @@ A second top-level list (tab) = another `TopLevelScreen` object; the `NavBar` co
 ### Offline two-way sync — [optional/sync/](optional/sync)
 1. Infrastructure once per app: `SyncRepository`, `SyncState`, `SyncUseCase` + `ObserveSyncStateUseCase` (domain);
    `SyncWorker`, `model/SyncState`, `platform/SyncRepositoryImpl`, `di/AppModule`, `MainApplication` with `HiltWorkerFactory`
-   (app); catalog/build/manifest lines from `build.snippet.stub`; `ApiFactory.LIMIT_COUNT`.
+   (app); catalog/build/manifest lines from `build.snippet.stub`; `ApiFactory.LIMIT_COUNT`; `FakeSyncRepository` in
+   `domain/src/testFixtures` (pass it to use cases in tests).
 2. Per entity: replace the base `Entity`, `Dao`, `Mapper`, `RepositoryImpl` with the sync versions; add `DeleteEntity`,
    `RequestDto`, `ResponseDto`, `SyncRequest`, `SyncResponse`, the `ApiService` endpoint; follow `wiring.snippet.stub`
    (domain entity `isSynced`, repository `clear()`/`sync()`, `syncRepository.sync()` after every write, pull-to-refresh,

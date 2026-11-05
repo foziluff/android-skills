@@ -105,6 +105,32 @@ Rules:
 - `org.gradle.configuration-cache=true`; KSP (not kapt) for Hilt and Room.
 - **[proposal]** `org.gradle.parallel=true` (currently commented out) — modules are decoupled enough.
 
+## 8. Measuring instead of guessing
+
+- **Compose stability reports** **[proposal]**: enable per build when investigating —
+  `composeCompiler { reportsDestination = layout.buildDirectory.dir("compose_compiler"); metricsDestination = … }` in the
+  compose convention plugin behind a Gradle property; every State/Ui class must be reported `stable`.
+  Strong skipping is on by default with the Kotlin 2 Compose compiler, so lambdas are memoized — unstable *parameters* still
+  defeat skipping, which is why `@Immutable` / `ImmutableHolder` stay mandatory.
+- **Recomposition counts:** Layout Inspector → "Show recomposition counts" on lists and forms before merging UI changes that
+  touch state shape.
+- **Room queries:** for every new or changed query run `EXPLAIN QUERY PLAN` (Database Inspector or `sqlite3` on the exported
+  DB) — no `SCAN TABLE` on tables that grow with user data; add the matching `Index` in the same change.
+- **Startup / jank** **[proposal]**: a `:baselineprofile` module (Baseline Profile Gradle plugin) with a generator for the
+  start → first list path, and a Macrobenchmark for cold start and list scrolling; profile shipped in release.
+- **Release build** is measured, never debug: R8 is on (`optimization.enable = true`); keep rules only for code that uses
+  reflection; check APK size in `assembleRelease` output when adding a dependency.
+
+## 9. Review checklist against needless work
+
+- [ ] A changed State field recomposes only the composables that read it (read state as low in the tree as possible;
+      pass values, not the whole State, to sections).
+- [ ] No object/collection/lambda created in composition without `remember` when it feeds a child (`Modifier` chains are fine).
+- [ ] No `collectAsState` in leaf composables of a list; one collection per screen.
+- [ ] Animations use `graphicsLayer` / lambda-based modifiers (`offset { }`) for per-frame values, not recomposition.
+- [ ] No synchronous I/O, JSON parsing or crypto in composition or on Main.
+- [ ] Expensive derived data (sorting, grouping, totals) is computed in SQL or in the ViewModel once, not in composition.
+
 ---
 
 ## Performance checklist (every change)
@@ -117,3 +143,4 @@ Rules:
 - [ ] Paged lists: `cachedIn(viewModelScope)`; filter changes through `distinctUntilChanged().flatMapLatest`.
 - [ ] No blocking call on Main; blocking platform APIs inside `withContext(Dispatchers.IO)`.
 - [ ] No Activity/View/Context held beyond its lifecycle; every listener has a matching unregister.
+- [ ] New/changed Room query checked with `EXPLAIN QUERY PLAN`; no full scan of a growing table.

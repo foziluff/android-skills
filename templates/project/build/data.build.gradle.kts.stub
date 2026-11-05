@@ -1,27 +1,13 @@
 // data/build.gradle.kts
 plugins {
-    alias(libs.plugins.android.library)
-    // KSP
-    alias(libs.plugins.ksp)
-    // Hilt
-    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.{appName}.android.library)
+    alias(libs.plugins.{appName}.hilt)
     // Kotlin serialization
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 android {
     namespace = "{basePackage}.data"
-    compileSdk {
-        version = release(libs.versions.compileSdk.get().toInt()) {
-            minorApiLevel = libs.versions.minorApiLevel.get().toInt()
-        }
-    }
-
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
 
     buildTypes {
         // DECISION: real hosts; never commit credentials
@@ -41,10 +27,6 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
-kotlin {
-    jvmToolchain(libs.versions.jdkVersion.get().toInt())
-}
-
 dependencies {
     // Modules
     implementation(project(":domain"))
@@ -55,15 +37,11 @@ dependencies {
     ksp(libs.room3.compiler)
     // Datastore
     implementation(libs.datastore.preferences)
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     // Kotlin serialization
     implementation(libs.kotlinx.serialization.json)
     // Retrofit
     implementation(libs.bundles.retrofit)
 
-    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.kotlinx.coroutines.test)
 }

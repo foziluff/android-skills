@@ -1,0 +1,52 @@
+# config/detekt/detekt.yml
+# Built upon detekt's default config (buildUponDefaultConfig = true); only differences are listed.
+
+complexity:
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+    ignoreDefaultParameters: true
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    excludes: ['**/dao/**', '**/repository/**']
+  StringLiteralDuplication:
+    active: true
+    allowedDuplications: 1
+    ignoreAnnotation: true
+    allowedWithLengthLessThan: 5
+    excludes: ['**/test/**', '**/androidTest/**', '**/testFixtures/**']
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][_A-Z0-9]*'
+    propertyPattern: '[A-Za-z][_A-Za-z0-9]*'
+
+style:
+  MagicNumber:
+    active: true
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreNamedArgument: false
+    excludes: ['**/ui/theme/**', '**/test/**', '**/androidTest/**', '**/testFixtures/**']
+  MaxLineLength:
+    maxLineLength: 120
+  UnusedPrivateProperty:
+    active: true
+  ForbiddenComment:
+    active: false
+  ReturnCount:
+    max: 4
+  WildcardImport:
+    active: true
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    active: true
+
+exceptions:
+  SwallowedException:
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  TooGenericExceptionCaught:
+    excludes: ['**/remote/Utils.kt']

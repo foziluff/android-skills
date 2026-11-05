@@ -19,6 +19,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEvent
 
 internal const val DEFAULT_TRANSITION_DURATION_MILLISECOND = 450
+private const val PARALLAX_OFFSET_DIVIDER = 3
 private const val DEFAULT_POP_TRANSITION_DURATION_MILLISECOND = 400
 private val LinearOutSlowInEasing = CubicBezierEasing(0.1f, 0f, 0f, 1f)
 
@@ -44,7 +45,7 @@ internal fun <T : Any> customTransitionSpec():
         initialOffsetX = { it }
     ) togetherWith slideOutHorizontally(
         animationSpec = exitTween(),
-        targetOffsetX = { -it / 3 }
+        targetOffsetX = { -it / PARALLAX_OFFSET_DIVIDER }
     ) + veilOut(exitTween())
 }
 
@@ -53,7 +54,7 @@ internal fun <T : Any> customPopTransitionSpec():
         AnimatedContentTransitionScope<Scene<T>>.() -> ContentTransform = {
     slideInHorizontally(
         animationSpec = enterTween(),
-        initialOffsetX = { -it / 3 }
+        initialOffsetX = { -it / PARALLAX_OFFSET_DIVIDER }
     ) + unveilIn(enterTween()) togetherWith slideOutHorizontally(
         animationSpec = exitTween(),
         targetOffsetX = { it }
@@ -66,7 +67,7 @@ internal fun <T : Any> customPredictivePopTransitionSpec():
     {
         slideInHorizontally(
             animationSpec = enterTween(),
-            initialOffsetX = { -it / 3 }
+            initialOffsetX = { -it / PARALLAX_OFFSET_DIVIDER }
         ) + unveilIn(enterTween()) togetherWith slideOutHorizontally(
             animationSpec = exitTween(),
             targetOffsetX = { it }

@@ -1,6 +1,7 @@
 // data/src/main/java/{basePackagePath}/data/remote/interceptor/AuthInterceptor.kt
 package {basePackage}.data.remote.interceptor
 
+import {basePackage}.data.remote.ApiFactory
 import {basePackage}.domain.gateway.TokenGateway
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -15,13 +16,19 @@ internal class AuthInterceptor @Inject constructor(
         val token = runBlocking { tokenGateway.observeToken().firstOrNull() }
 
         val request = chain.request().newBuilder()
-            .header("Accept", "application/json")
+            .header(HEADER_ACCEPT, ApiFactory.CONTENT_TYPE_JSON)
             .apply {
                 if (!token.isNullOrBlank()) {
-                    addHeader("Authorization", "Bearer $token")
+                    addHeader(HEADER_AUTHORIZATION, "$BEARER_PREFIX$token")
                 }
             }.build()
 
         return chain.proceed(request)
+    }
+
+    companion object {
+        private const val HEADER_ACCEPT = "Accept"
+        private const val HEADER_AUTHORIZATION = "Authorization"
+        private const val BEARER_PREFIX = "Bearer "
     }
 }

@@ -10,4 +10,33 @@ plugins {
     alias(libs.plugins.ksp) apply false
     // Hilt
     alias(libs.plugins.hilt.android) apply false
+    // Detekt
+    alias(libs.plugins.detekt) apply false
+}
+
+// Raw values the built-in tools do not catch in Compose code. Theme files are the only place for literal design values.
+val checkRawValues by tasks.registering {
+    group = "verification"
+    description = "Fails on hard-coded UI text, dp, sp and colors outside ui/theme"
+    val sources = fileTree(rootDir) {
+        include("*/src/main/**/*.kt")
+        exclude("**/build/**", "**/ui/theme/**")
+    }
+    val root = rootDir
+    inputs.files(sources)
+    doLast {
+        val rules = listOf(
+            Regex("""\bText\(\s*(text\s*=\s*)?"""") to "hard-coded UI text: use stringResource()",
+            Regex("""\b\d+(\.\d+)?\.dp\b""") to "raw dp: use MaterialTheme.spacing / MaterialTheme.sizing",
+            Regex("""\b\d+(\.\d+)?\.sp\b""") to "raw sp: use MaterialTheme.typography",
+            Regex("""\bColor\(\s*0x""") to "raw color: use MaterialTheme.colorScheme / appColorScheme",
+        )
+        val violations = sources.files.sorted().flatMap { file ->
+            file.readLines().mapIndexedNotNull { index, line ->
+                rules.firstOrNull { (regex, _) -> regex.containsMatchIn(line) }
+                    ?.let { (_, message) -> "${file.relativeTo(root)}:${index + 1}: $message" }
+            }
+        }
+        if (violations.isNotEmpty()) throw GradleException(violations.joinToString("\n"))
+    }
 }

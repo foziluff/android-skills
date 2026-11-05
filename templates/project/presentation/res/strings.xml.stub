@@ -5,6 +5,9 @@
     <string name="delete">Delete</string>
     <string name="delete_title">Delete</string>
     <string name="field_required">Required field</string>
+    <string name="required_label">%1$s *</string>
+    <string name="text_length_counter" translatable="false">%1$d/%2$d</string>
+    <string name="link_with_arrow">%1$s  ›</string>
     <string name="error_unknown">Something went wrong. Please try again.</string>
     <string name="error_connection_refused">The server is not responding. Please try later.</string>
     <string name="error_io_connection">Connection problem. Check your network.</string>

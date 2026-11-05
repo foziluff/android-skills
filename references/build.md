@@ -60,22 +60,52 @@ room3 = ["room3-runtime", "room3-paging"]
 - Repositories: `pluginManagement.google { content { includeGroupByRegex(...) } }`; `RepositoriesMode.FAIL_ON_PROJECT_REPOS`
   — no module may declare its own repository.
 
-## Module scripts
+## Convention plugins (`build-logic`) **[confirmed: DRY]**
 
-| Module | Plugins |
+Shared module configuration is written once, in an included build:
+
+```
+settings.gradle.kts            pluginManagement { includeBuild("build-logic") … }
+build-logic/
+  settings.gradle.kts          versionCatalogs { create("libs") { from(files("../gradle/libs.versions.toml")) } }
+  convention/build.gradle.kts  `kotlin-dsl`; compileOnly AGP, KGP, detekt plugins; registers the plugin ids
+  convention/src/main/kotlin/
+    ProjectExtensions.kt       libs accessor, configureAndroid (compileSdk/minSdk), configureLint, configureKotlin (+detekt)
+    AndroidApplicationConventionPlugin.kt   {appName}.android.application  (+ targetSdk)
+    AndroidLibraryConventionPlugin.kt       {appName}.android.library      (+ test runner)
+    AndroidComposeConventionPlugin.kt       {appName}.android.compose      (compose plugin, buildFeatures, BOM + UI deps)
+    JvmLibraryConventionPlugin.kt           {appName}.jvm.library          (kotlin-jvm, java-test-fixtures)
+    HiltConventionPlugin.kt                 {appName}.hilt                 (ksp, hilt plugin, hilt-android + compiler)
+```
+
+A module script then contains only what is unique to it:
+```kotlin
+plugins {
+    alias(libs.plugins.{appName}.android.library)
+    alias(libs.plugins.{appName}.android.compose)
+    alias(libs.plugins.{appName}.hilt)
+}
+
+android {
+    namespace = "{basePackage}.presentation"
+}
+
+dependencies { … }
+```
+- Plugin ids are declared in the catalog without a version (`{appName}-android-library = { id = "{appName}.android.library" }`).
+- AGP 9: `compileSdk {}` and `defaultConfig` are on `CommonExtension`; `lint {}` only on `ApplicationExtension` /
+  `LibraryExtension` — hence `configureLint` is called from each plugin.
+- (legacy: the reference project repeats the `android {}` / `kotlin {}` blocks and Hilt/KSP lines in every module.)
+
+| Module | Plugins (skeleton) |
 |---|---|
-| `:app` | android.application, kotlin.compose, ksp, hilt (+ kotlin.serialization for the sync worker, google-services only with Firebase) |
-| `:presentation` | android.library, kotlin.compose, ksp, kotlin.serialization (routes), hilt |
-| `:data` | android.library, ksp, hilt, kotlin.serialization |
-| `:core` | android.library |
-| `:domain` | kotlin.jvm |
+| `:app` | `{appName}.android.application`, `.android.compose`, `.hilt` (+ kotlin.serialization with sync) |
+| `:presentation` | `{appName}.android.library`, `.android.compose`, `.hilt`, kotlin.serialization (routes) |
+| `:data` | `{appName}.android.library`, `.hilt`, kotlin.serialization |
+| `:core` | `{appName}.android.library` |
+| `:domain` | `{appName}.jvm.library` |
 
-Each Android module repeats the same `android { ndkVersion; namespace; compileSdk {…}; defaultConfig { minSdk;
-testInstrumentationRunner } }` and `kotlin { jvmToolchain(...) }` blocks. **[proposal]** a `build-logic` included build with
-convention plugins (`debtnote.android.library`, `debtnote.android.compose`, `debtnote.hilt`) once a sixth module appears —
-until then the duplication is small and explicit.
-
-Namespaces: `com.wigroup.debtnote` (app), `com.wigroup.{module}` for libraries.
+Namespaces: `{basePackage}.{appName}` (app), `{basePackage}.{module}` for libraries.
 
 ## Build types, R8, keep rules
 
@@ -124,20 +154,26 @@ org.gradle.warning.mode=all
 ```
 `warning.mode=all` — deprecation warnings are visible on every build; new code must not add warnings.
 
-## Static analysis
+## Static analysis and raw-value checks
 
-- Configured: Android Lint (AGP default), Kotlin compiler warnings.
-- Not configured: ktlint, detekt, spotless, CI. **[proposal]** add only after agreeing with the author; minimal option is
-  `./gradlew lintDebug` + `testDebugUnitTest` in CI.
+| Tool | Config | What it guards |
+|---|---|---|
+| detekt `2.0.0-alpha.6` (`dev.detekt`, applied by every convention plugin) | `config/detekt/detekt.yml` on top of the default config | `MagicNumber`, `StringLiteralDuplication`, `UnsafeCallOnNullableType` (`!!`), `WildcardImport`, `MaxLineLength 120`, `NewLineAtEndOfFile`, `MatchingDeclarationName`, complexity — Compose functions exempt from naming/length rules |
+| Android Lint | `config/lint/lint.xml`, `abortOnError = true` | texts (`HardcodedText`, `SetTextI18n`, `MissingTranslation`, `ExtraTranslation`, `StringFormat*`), `UnusedResources`, exported components, implicit intents |
+| `checkRawValues` (root task) | regexes in the root `build.gradle.kts` | `Text("…")`, `N.dp`, `N.sp`, `Color(0x…)` outside `ui/theme` — what Lint and detekt do not see in Compose code |
+
+detekt 2 is still an alpha line (the 1.23 line does not support Gradle 9 / Kotlin 2.4) **[hypothesis]**; pin the version and
+move to the first stable 2.x. Config property names changed in 2.x (`allowedDuplications`, `allowedWithLengthLessThan`).
+The reference project has only Lint with default settings.
 
 ## Commands
 
 ```bash
+./gradlew detekt lintDebug checkRawValues      # style, texts, raw values
+./gradlew :domain:test testDebugUnitTest       # unit tests
 ./gradlew assembleDebug
-./gradlew lintDebug
-./gradlew testDebugUnitTest :domain:test
-./gradlew assembleRelease          # verifies R8
-./gradlew :data:kspDebugKotlin     # quick check of Room/Hilt code generation
+./gradlew assembleRelease                      # verifies R8; run separately from assembleDebug on a clean schema dir
+./gradlew :data:kspDebugKotlin                 # quick check of Room/Hilt code generation
 ```
 
 ## Adding a dependency

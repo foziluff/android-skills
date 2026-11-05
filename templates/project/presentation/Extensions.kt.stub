@@ -10,11 +10,14 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.input.TextFieldValue
 
 internal fun FocusRequester.requestFocusCatch() = try {
     requestFocus()
 } catch (_: Exception) {
 }
+
+internal fun TextFieldValue.exceeds(maxLength: Int): Boolean = text.trim().length > maxLength
 
 internal fun Context.openUri(uri: Uri, action: String = Intent.ACTION_VIEW) {
     try {
@@ -30,7 +33,7 @@ internal fun Context.openUri(uri: Uri, action: String = Intent.ACTION_VIEW) {
 
 internal fun Context.shareText(text: String) {
     val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
+        type = MIME_TEXT_PLAIN
         putExtra(Intent.EXTRA_TEXT, text)
     }
     val chooser = Intent.createChooser(intent, null).apply {
@@ -47,3 +50,5 @@ internal fun Modifier.hideKeyboard(
 ): Modifier = pointerInput(controller, clearFocus) {
     detectTapGestures(onTap = { controller.hide(clearFocus) })
 }
+
+private const val MIME_TEXT_PLAIN = "text/plain"

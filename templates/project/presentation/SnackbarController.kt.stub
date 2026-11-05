@@ -48,7 +48,7 @@ internal fun ObserveSnackbarEvents() {
                 SnackbarDuration.Indefinite -> androidx.compose.material3.SnackbarDuration.Indefinite
             }
 
-            withTimeoutOrNull(5.seconds) {
+            withTimeoutOrNull(SNACKBAR_MAX_DURATION) {
                 SnackbarController.snackbarHostState.showSnackbar(
                     message = event.message.asString(context),
                     actionLabel = event.actionLabel,
@@ -59,3 +59,5 @@ internal fun ObserveSnackbarEvents() {
         }
     }
 }
+
+private val SNACKBAR_MAX_DURATION = 5.seconds

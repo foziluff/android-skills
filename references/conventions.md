@@ -26,6 +26,10 @@
 | Mapper | `{layer}/mapper/` | `{Entity}Mapper.kt` (data), `CommonMapper.kt` (presentation) |
 | Ui model | `presentation/model/` | `{Entity}Ui`, UI-only enums (`AppBarType`, `DebtType`, `SelectingType`) |
 | Screen | `presentation/feature/{area}/{screen}/` | `{Screen}Screen`, `{Screen}ViewModel`, `{Screen}State`, `{Screen}Intent`, `{Screen}Effect`, `{Screen}Event` |
+| Feature component (used by ≥2 screens of one area) | `presentation/feature/{area}/component/` | `{Entity}Form`, `{Entity}Row` |
+| Error → text mapper | `presentation/mapper/` | `{Entity}ErrorMapper.kt` with `{Entity}Error.to{Field}ErrorUiText()` |
+| Test fake of a domain port | `domain/src/testFixtures/kotlin/.../fake/` | `Fake{Entity}Repository` (public, shared by every module's tests) |
+| Shared Gradle configuration | `build-logic/convention/src/main/kotlin/` | `AndroidLibraryConventionPlugin`, `ProjectExtensions.kt` |
 | Component | `presentation/component/` | `App{Name}` for design-system parts (`AppButton`, `AppTextField`), descriptive for composites (`DialogMessage`, `NavBar`) |
 | Route | `presentation/navigation/Screen.kt` | `Screen.{Name}` / `TopLevelScreen.{Name}` |
 
@@ -104,18 +108,90 @@ sync helpers `getUnsynced{Entities}(limit)`, `getDeletedIds(limit)`, `getMaxUpda
   ```
   *Why:* domain does not know `R`.
 
-## Constants, no magic values
+<a id="dry-and-raw-values"></a>
+## DRY and raw values **[confirmed]**
 
-- Every limit/size/key is a `const val UPPER_SNAKE` in the `companion object` of the class that owns the rule
-  (`NoteInputValidator.MAX_TEXT_LENGTH`, `CanAddDebtSpecification.LIMIT_PRO`, `SyncWorker.WORK_NAME`,
-  `AppDatabase.DB_NAME`, `CryptoManager.IV_LENGTH`) or a top-level `internal const val` for a file
-  (`DEFAULT_TRANSITION_DURATION_MILLISECOND`, `MAXIMUM_FRACTION_DIGITS`).
-- Defaults for settings/value objects are a `companion object { val Default = … }` (`AppSettings.Default`,
-  `ContactsFilter.Default`, `AppConfig.Default`, `DebtsSummaryUi.Default`).
-- DataStore keys are `private val xxxKey = …PreferencesKey("snake_case")` properties of the class that owns them.
-- Big numbers with `_`: `2_000`, `400_000`.
-- legacy: `60_000L` and `30 * 60_000L` in `MainViewModel.evaluateLock`, `(3..7)` days in `getNextRandomTimeMillis`,
-  page geometry and hex colors in `PdfGenerator`, `pageSize = 30` repeated in three repositories — extract constants.
+**Goal:** changing a color, a padding, a text, a limit, a button or a dialog is an edit in **one** file; nobody searches the
+project. **Rule:** whatever is used a second time gets a single home *at the second use* — however small it is.
+
+### Where every kind of value lives
+
+| Kind of value | Its only home | Example (skeleton / reference) |
+|---|---|---|
+| User-visible text | `res/values*/strings.xml` (every locale), `UiText` from ViewModels | `R.string.field_required` |
+| Text with variable parts | format resource with `%1$s` / `%1$d`, never `+` or templates | `required_label` = `%1$s *`, `text_length_counter` (`translatable="false"`) |
+| Plural text | `<plurals>` + `pluralStringResource` / `UiText.PluralResource` | `R.plurals.notes_deleted` |
+| Color | palette `ui/theme/Color.kt` → role in `ColorScheme` / `AppColorScheme` → `MaterialTheme.colorScheme.x` | `MaterialTheme.appColorScheme.link` |
+| Spacing / size / radius / stroke | `Spacing` / `Sizing` tokens | `MaterialTheme.spacing.space200`, `MaterialTheme.sizing.emptyStateIcon` |
+| Text style / font size | `ui/theme/Type.kt` → `MaterialTheme.typography.x` | `bodyLarge` |
+| Alpha, fractions, durations, easing | `private const val` in the component/file, or a token if shared | `INDICATOR_ALPHA`, `EMPTY_STATE_HEIGHT_FRACTION`, `DEFAULT_TRANSITION_DURATION_MILLISECOND` |
+| Business limit / length / regex | `const val` in the domain validator/specification; UI reuses it | `TaskItemInputValidator.MAX_TITLE_LENGTH` in `AppTextField(maxLength = …)` |
+| Technical identifier (DataStore key, work name, channel id, lazy-list key/contentType, Keystore alias/provider, DB name) | `private val`/`const val` owned by the one class that uses it | `themeKey`, `SyncWorker.WORK_NAME`, `TASK_ITEM_CONTENT_TYPE`, `KEYSTORE_PROVIDER` |
+| HTTP header / MIME type / prefix | `const val` (shared ones in `ApiFactory`) | `ApiFactory.CONTENT_TYPE_JSON`, `AuthInterceptor.BEARER_PREFIX` |
+| HTTP status with meaning | named constant | `HTTP_UNAUTHORIZED = 401` (legacy: `401`/`429` literals in reference ViewModels) |
+| Fixed set of options | `enum` / `sealed interface` / value class with named instances | `AppTheme`, `BlockingAppType.IMMEDIATELY` |
+| Defaults of a settings object | `companion object { val Default = … }` | `AppSettings.Default` |
+| Base URL / environment | `buildConfigField` per build type | `BuildConfig.BASE_URL` |
+| SQL | `@Query` text or SQL fragments inside the repository's query builder; fragments chosen by enums | `pagingConstructQuery` |
+
+Allowed literals: `0`, `1`, `-1`, `true/false`, empty string, and literals **inside** their home (a token definition, a
+`const val`, a resource, an `@Query`, a test).
+
+### Where an extracted thing goes (scope = scope of its users)
+
+| Used by | UI fragment | Logic | Value |
+|---|---|---|---|
+| one file | `private @Composable` in the file | `private fun` | `private const val` at the bottom of the file |
+| one screen package | same file or `{Screen}Components.kt` in the package | private in ViewModel / mapper | companion `const val` |
+| one feature (add + edit + list) | `feature/{area}/component/` (`{Entity}Form`) | `mapper/{Entity}ErrorMapper.kt`, `{Entity}` extensions | domain validator constants |
+| several features | `presentation/component/App{Name}` (`AppBottomButton`) | `presentation/util/` (`TextFieldValue.exceeds`) | theme token / color role / string resource |
+| several layers | — | domain use case / validator / specification | domain constant |
+| several modules (build/test) | — | `build-logic` convention plugin; `testFixtures` | version catalog |
+
+### What it looks like
+
+```kotlin
+// ❌ copy in AddScreen and EditScreen
+Box(Modifier.imePadding().background(MaterialTheme.colorScheme.background).padding(24.dp, 8.dp, 24.dp, 16.dp)) {
+    AppButton(text = "Save", modifier = Modifier.fillMaxWidth(), onClick = onSave)
+}
+AppTextField(label = stringResource(R.string.title) + " *", …)
+
+// ✅ one component, one string, tokens
+AppBottomButton(text = stringResource(R.string.save), enabled = !state.isProcessing, onClick = { … })
+AppTextField(label = stringResource(R.string.required_label, stringResource(R.string.task_item_title)), …)
+```
+```kotlin
+// ❌ the same branch in two ViewModels
+.onError { error -> when (error) { TaskItemError.TitleEmpty -> …field_required…; else -> {} } }
+
+// ✅ mapper/TaskItemErrorMapper.kt
+internal fun TaskItemError.toTitleErrorUiText(): UiText? = when (this) {
+    TaskItemError.TitleEmpty -> UiText.StringResource(R.string.field_required)
+    TaskItemError.TitleMaxLength, TaskItemError.DescMaxLength, TaskItemError.ListEmpty -> null
+}
+```
+
+### Components must stay generic
+- Parameters for what differs (`text`, `enabled`, colors with theme defaults), never a copy with one changed line.
+- No feature types in `presentation/component/` (no `TaskItemUi` parameter) — pass primitives/strings/lambdas; feature
+  types belong to `feature/{area}/component/`.
+- Before writing a widget, look in `component/` and `feature/{area}/component/`.
+
+### Enforcement (skeleton)
+- `detekt` (`config/detekt/detekt.yml`): `MagicNumber` (theme files and tests excluded), `StringLiteralDuplication`,
+  `UnsafeCallOnNullableType`, `WildcardImport`, `MaxLineLength 120`.
+- Android Lint (`config/lint/lint.xml`): `HardcodedText`, `SetTextI18n`, `MissingTranslation`, `ExtraTranslation`,
+  `StringFormat*`, `UnusedResources` as errors.
+- `./gradlew checkRawValues`: `Text("…")`, `N.dp`, `N.sp`, `Color(0x…)` outside `ui/theme` fail the build
+  (Lint does not see literals inside Compose calls).
+- Review: grep the diff for the same string/number twice; every new widget used twice is a component.
+
+### Reference project (legacy, fix when touching)
+`60_000L` and `30 * 60_000L` in `MainViewModel.evaluateLock`, `(3..7)` days in `getNextRandomTimeMillis`, page geometry and
+hex colors in `PdfGenerator`, `pageSize = 30` in three repositories, `401`/`429` literals, raw `dp` in three screens,
+`"${balanceString} ${currencySymbol}"` concatenations, voice-recording and multi-select blocks copied between ViewModels,
+the sync loop copied in three repositories.
 
 ## Code style
 

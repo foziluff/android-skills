@@ -1,10 +1,6 @@
 // domain/build.gradle.kts
 plugins {
-    alias(libs.plugins.jetbrains.kotlin.jvm)
-}
-
-kotlin {
-    jvmToolchain(libs.versions.jdkVersion.get().toInt())
+    alias(libs.plugins.{appName}.jvm.library)
 }
 
 dependencies {
@@ -16,4 +12,5 @@ dependencies {
     // Test
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testFixturesImplementation(libs.paging.common)
 }

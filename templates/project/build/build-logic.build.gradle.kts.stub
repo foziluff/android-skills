@@ -1,0 +1,37 @@
+// build-logic/convention/build.gradle.kts
+plugins {
+    `kotlin-dsl`
+}
+
+dependencies {
+    compileOnly(libs.android.gradlePlugin)
+    compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.plugins.detekt.toDependency())
+}
+
+fun Provider<PluginDependency>.toDependency() = map { "${it.pluginId}:${it.pluginId}.gradle.plugin:${it.version}" }
+
+gradlePlugin {
+    plugins {
+        register("androidApplication") {
+            id = libs.plugins.{appName}.android.application.get().pluginId
+            implementationClass = "AndroidApplicationConventionPlugin"
+        }
+        register("androidLibrary") {
+            id = libs.plugins.{appName}.android.library.get().pluginId
+            implementationClass = "AndroidLibraryConventionPlugin"
+        }
+        register("androidCompose") {
+            id = libs.plugins.{appName}.android.compose.get().pluginId
+            implementationClass = "AndroidComposeConventionPlugin"
+        }
+        register("jvmLibrary") {
+            id = libs.plugins.{appName}.jvm.library.get().pluginId
+            implementationClass = "JvmLibraryConventionPlugin"
+        }
+        register("hilt") {
+            id = libs.plugins.{appName}.hilt.get().pluginId
+            implementationClass = "HiltConventionPlugin"
+        }
+    }
+}

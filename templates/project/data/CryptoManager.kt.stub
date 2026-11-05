@@ -13,7 +13,7 @@ import javax.inject.Singleton
 
 @Singleton
 internal class CryptoManager @Inject constructor() {
-    private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+    private val keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }
 
     private fun getSecretKey(): SecretKey {
         val existingKey = keyStore.getEntry(ALIAS, null) as? KeyStore.SecretKeyEntry
@@ -21,7 +21,7 @@ internal class CryptoManager @Inject constructor() {
     }
 
     private fun createSecretKey(): SecretKey {
-        val keyGenerator = KeyGenerator.getInstance(ALGORITHM, "AndroidKeyStore")
+        val keyGenerator = KeyGenerator.getInstance(ALGORITHM, KEYSTORE_PROVIDER)
         val keyGenParameterSpec = KeyGenParameterSpec.Builder(
             ALIAS,
             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
@@ -60,6 +60,7 @@ internal class CryptoManager @Inject constructor() {
     }.getOrNull()
 
     companion object {
+        private const val KEYSTORE_PROVIDER = "AndroidKeyStore"
         private const val ALIAS = "{appName}_token_alias"
         private const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
         private const val BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM

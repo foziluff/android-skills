@@ -19,9 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import {basePackage}.presentation.R
 import {basePackage}.presentation.ui.theme.appColorScheme
 import {basePackage}.presentation.ui.theme.sizing
 import {basePackage}.presentation.ui.theme.spacing
@@ -78,7 +80,7 @@ private fun MessageLink(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     Text(
-        text = "$linkText  ›",
+        text = stringResource(R.string.link_with_arrow, linkText),
         modifier = Modifier.clickable(
             interactionSource = interactionSource,
             onClick = onLinkClick

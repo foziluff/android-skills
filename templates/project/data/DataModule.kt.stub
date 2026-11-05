@@ -67,7 +67,7 @@ internal interface DataModule {
             val json = Json {
                 ignoreUnknownKeys = true
             }
-            val contentType = "application/json".toMediaType()
+            val contentType = ApiFactory.CONTENT_TYPE_JSON.toMediaType()
 
             return Retrofit.Builder()
                 .baseUrl(ApiFactory.BASE_URL)

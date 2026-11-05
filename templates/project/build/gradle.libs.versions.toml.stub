@@ -43,8 +43,13 @@ retrofit = "3.0.0"
 javax-inject = "1"
 # Coroutines test
 coroutines = "1.11.0"
+# Detekt
+detekt = "2.0.0-alpha.6"
 
 [libraries]
+# Build logic
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -92,6 +97,14 @@ javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inje
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 [plugins]
+# Detekt
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+# Convention plugins (build-logic)
+{appName}-android-application = { id = "{appName}.android.application" }
+{appName}-android-library = { id = "{appName}.android.library" }
+{appName}-android-compose = { id = "{appName}.android.compose" }
+{appName}-jvm-library = { id = "{appName}.jvm.library" }
+{appName}-hilt = { id = "{appName}.hilt" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

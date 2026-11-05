@@ -3,13 +3,12 @@ package {basePackage}.presentation.feature.{area}.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import {basePackage}.domain.error.{Entity}Error
 import {basePackage}.domain.usecase.{area}.Create{Entity}UseCase
 import {basePackage}.domain.validation.{Entity}InputValidator
 import {basePackage}.domain.value.onError
 import {basePackage}.domain.value.onSuccess
-import {basePackage}.presentation.R
-import {basePackage}.presentation.util.UiText
+import {basePackage}.presentation.mapper.toTitleErrorUiText
+import {basePackage}.presentation.util.exceeds
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -33,13 +32,13 @@ internal class Add{Entity}ViewModel @Inject constructor(
     fun processIntent(intent: Add{Entity}Intent) {
         when (intent) {
             is Add{Entity}Intent.TitleChanged -> {
-                if (intent.value.text.trim().length > {Entity}InputValidator.MAX_TITLE_LENGTH) return
+                if (intent.value.exceeds({Entity}InputValidator.MAX_TITLE_LENGTH)) return
 
                 _state.update { it.copy(titleValue = intent.value, titleErrorUiText = null) }
             }
 
             is Add{Entity}Intent.DescChanged -> {
-                if (intent.value.text.trim().length > {Entity}InputValidator.MAX_DESC_LENGTH) return
+                if (intent.value.exceeds({Entity}InputValidator.MAX_DESC_LENGTH)) return
 
                 _state.update { it.copy(descValue = intent.value) }
             }
@@ -60,15 +59,7 @@ internal class Add{Entity}ViewModel @Inject constructor(
             ).onSuccess {
                 _effect.send(Add{Entity}Effect.Saved)
             }.onError { error ->
-                when (error) {
-                    {Entity}Error.TitleEmpty -> _state.update {
-                        it.copy(titleErrorUiText = UiText.StringResource(R.string.field_required))
-                    }
-
-                    {Entity}Error.TitleMaxLength,
-                    {Entity}Error.DescMaxLength,
-                    {Entity}Error.ListEmpty -> {}
-                }
+                _state.update { it.copy(titleErrorUiText = error.toTitleErrorUiText()) }
             }
         }.invokeOnCompletion {
             _state.update { it.copy(isProcessing = false) }

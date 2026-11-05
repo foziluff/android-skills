@@ -260,7 +260,12 @@ internal fun AppButton(
 ```
 - Required data first, `modifier` first optional, `onClick` last (trailing lambda).
 - Strings come in already resolved (`stringResource` at the call site).
-- Before writing a new widget, check `component/`; a second usage of a custom widget moves it there.
+- **Second use → component, however small** **[confirmed]**: the skeleton's `AppBottomButton` is just a padded `AppButton`,
+  `{Entity}Form` is two fields — both exist because Add and Edit use them. Cross-feature widgets → `presentation/component/`
+  (no feature types in parameters); widgets shared by the screens of one area → `feature/{area}/component/`.
+- Before writing a new widget, check `component/` and `feature/{area}/component/`.
+- Components take resolved strings and theme-default colors/sizes as parameters; they never contain literal text, `dp`, `sp`
+  or colors — values come from tokens ([conventions.md](conventions.md#dry-and-raw-values)).
 
 ## Feedback to the user
 

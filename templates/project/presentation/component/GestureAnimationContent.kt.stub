@@ -17,7 +17,7 @@ internal fun GestureAnimationContent(
     isPressed: Boolean,
     modifier: Modifier = Modifier,
     boundEffect: Boolean = false,
-    scaleEffect: Float = 0.1f,
+    scaleEffect: Float = DEFAULT_SCALE_EFFECT,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val scale = remember { Animatable(1f) }
@@ -26,9 +26,9 @@ internal fun GestureAnimationContent(
         scale.animateTo(
             targetValue = if (isPressed) 1f - scaleEffect else 1f,
             animationSpec = if (isPressed) spring() else keyframes {
-                durationMillis = 300
-                1.01f at 100
-                1.01f at 200
+                durationMillis = RELEASE_DURATION_MILLIS
+                RELEASE_OVERSHOOT_SCALE at RELEASE_OVERSHOOT_START_MILLIS
+                RELEASE_OVERSHOOT_SCALE at RELEASE_OVERSHOOT_END_MILLIS
             }
         )
     }
@@ -40,9 +40,9 @@ internal fun GestureAnimationContent(
         scale.animateTo(
             targetValue = 1f,
             animationSpec = keyframes {
-                durationMillis = 600
-                1.1f at 200
-                0.96f at 400
+                durationMillis = BOUNCE_DURATION_MILLIS
+                BOUNCE_UP_SCALE at BOUNCE_UP_MILLIS
+                BOUNCE_DOWN_SCALE at BOUNCE_DOWN_MILLIS
             }
         )
     }
@@ -55,3 +55,15 @@ internal fun GestureAnimationContent(
         content = content
     )
 }
+
+internal const val BUTTON_PRESS_SCALE_EFFECT = 0.02f
+private const val DEFAULT_SCALE_EFFECT = 0.1f
+private const val RELEASE_DURATION_MILLIS = 300
+private const val RELEASE_OVERSHOOT_SCALE = 1.01f
+private const val RELEASE_OVERSHOOT_START_MILLIS = 100
+private const val RELEASE_OVERSHOOT_END_MILLIS = 200
+private const val BOUNCE_DURATION_MILLIS = 600
+private const val BOUNCE_UP_SCALE = 1.1f
+private const val BOUNCE_UP_MILLIS = 200
+private const val BOUNCE_DOWN_SCALE = 0.96f
+private const val BOUNCE_DOWN_MILLIS = 400

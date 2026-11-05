@@ -32,7 +32,7 @@ private object FormatterCache {
     }
 
     private fun createFormatters(locale: Locale): CachedFormatters {
-        val bestPattern = DateFormat.getBestDateTimePattern(locale, "MMMd")
+        val bestPattern = DateFormat.getBestDateTimePattern(locale, DAY_MONTH_SKELETON)
         return CachedFormatters(
             time = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale),
             dayMonth = DateTimeFormatter.ofPattern(bestPattern, locale),
@@ -76,3 +76,5 @@ internal fun Instant.toDate(): String {
     return if (targetZoned.year != nowZoned.year) formatters.full.format(targetZoned) else
         formatters.dayMonth.format(targetZoned)
 }
+
+private const val DAY_MONTH_SKELETON = "MMMd"
