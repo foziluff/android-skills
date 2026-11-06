@@ -34,13 +34,14 @@ create the file there and delete that line. `*.snippet.stub` files are fragments
    strings) — an app always starts with at least one entity, and Room needs ≥1 entity to compile.
 2. Gradle wrapper and daemon JVM (not templated, generated):
    ```bash
-   gradle wrapper --gradle-version <latest stable>
+   gradle wrapper --gradle-version <latest> --gradle-distribution-sha256-sum <official sha256>
    ./gradlew updateDaemonJvm --jvm-version=<jdkVersion>
    ```
    `local.properties` with `sdk.dir=…` (never committed).
-3. In `gradle/libs.versions.toml` the versions are the **baseline the skeleton was verified with**; at project start move
-   them to the latest stable releases together (BoMs first), then build.
-   `minorApiLevel` must exist in the installed SDK platform (`android-37.0` → `"0"`).
+3. Versions in `gradle/libs.versions.toml` were the latest on **2026-11-06** and verified together. **Always the latest
+   [confirmed]:** before the first build, check every entry again and move all of them to the latest release
+   ([references/build.md](../references/build.md#latest-versions) — rules, compatibility, where to look). Install the newest
+   SDK platform (`android-37.2` → `minorApiLevel = "2"`).
 4. Decide: real `BASE_URL`s in `data/build.gradle.kts` (debug/release), launcher icon in the manifest, palette in
    `ui/theme/Color.kt` + `Theme.kt`, locales (`localeFilters`, `resources.properties`, `values-*/strings.xml`,
    `AppLanguage`), backup policy (`backup_rules.xml`, `data_extraction_rules.xml`).

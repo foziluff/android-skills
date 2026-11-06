@@ -15,7 +15,7 @@ plugins {
 }
 
 // Raw values the built-in tools do not catch in Compose code. Theme files are the only place for literal design values.
-val checkRawValues by tasks.registering {
+tasks.register("checkRawValues") {
     group = "verification"
     description = "Fails on hard-coded UI text, dp, sp and colors outside ui/theme"
     val sources = fileTree(rootDir) {

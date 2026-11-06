@@ -15,8 +15,9 @@
     <issue id="UnsafeImplicitIntentLaunch" severity="error" />
     <issue id="LogNotTimber" severity="ignore" />
     <issue id="LogConditional" severity="error" />
-    <!-- Version freshness is a planned update, not a build failure -->
-    <issue id="GradleDependency" severity="ignore" />
-    <issue id="NewerVersionAvailable" severity="ignore" />
-    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <!-- Always the latest versions: outdated dependencies are reported on every lint run
+         (warnings, so a third-party release does not break CI; the checklist requires zero of them) -->
+    <issue id="GradleDependency" severity="warning" />
+    <issue id="NewerVersionAvailable" severity="warning" />
+    <issue id="AndroidGradlePluginVersion" severity="warning" />
 </lint>

@@ -4,20 +4,57 @@
 > app built with this skill. *(if the app …)* / *(optional)* marks capabilities only some apps have. A verified universal
 > version of the base code is in [templates/project](../templates/project) and [templates/feature](../templates/feature).
 
-## Toolchain (baseline the skeleton was verified with — move to the latest stable at project start)
+<a id="latest-versions"></a>
+## Always the latest versions **[confirmed]**
+
+Every dependency, plugin and tool is on its **latest release** — at project start, at every change that touches the build,
+and at least once a month. Updates are done together, in one commit ("Update dependencies to <date>"), followed by the full
+check suite.
+
+Rules for picking "latest":
+- **Stable first.** A pre-release (alpha/beta/rc) only when the needed line has no stable release yet — then the newest
+  version of that line (today: detekt `2.0.0-alpha.6`; Navigation 3 was beta until 1.2.x and is stable now).
+- **Compatible set, not each in isolation:** Compose compiler plugin = Kotlin version; KSP = newest release compatible with
+  that Kotlin; AGP needs its minimum Gradle; Hilt/Room/KSP move with Kotlin.
+- **JDK toolchain = newest *maintained* JDK the Kotlin compiler can target.** Verified 2026-11-06: JDK 27 is GA but
+  Kotlin 2.4.21 targets at most 26, and 26 is no longer maintained → **25**. Re-check when Kotlin moves.
+- **compileSdk / targetSdk = newest stable platform** (`platforms;android-37.2` → `compileSdk = "37"`,
+  `minorApiLevel = "2"`); install it with the SDK Manager before building.
+- **Gradle wrapper = newest release, with the official checksum:**
+  ```bash
+  ./gradlew wrapper --gradle-version <v> --gradle-distribution-sha256-sum $(curl -sSL https://services.gradle.org/distributions/gradle-<v>-bin.zip.sha256)
+  ./gradlew wrapper --gradle-version <v> --gradle-distribution-sha256-sum <same sum>   # second run updates the wrapper jar
+  ./gradlew updateDaemonJvm --jvm-version=<jdkVersion>
+  ```
+- An update that breaks the build is fixed in the same change (API migration, deprecation), not postponed by pinning an old
+  version. If a third-party library blocks an update, write the reason next to it in the catalog and re-check next month.
+
+Where to look: Google Maven (`dl.google.com/dl/android/maven2/<group>/<artifact>/maven-metadata.xml`), Maven Central
+(`repo1.maven.org/maven2/...`), Gradle plugin portal, `services.gradle.org/versions/current`, the SDK repository
+(`dl.google.com/android/repository/repository2-3.xml`). Android Lint reports outdated entries (`GradleDependency`,
+`NewerVersionAvailable`, `AndroidGradlePluginVersion` are **warnings** in `config/lint/lint.xml`); a hand-in has zero of them.
+
+## Toolchain (latest as of 2026-11-06 — verified: build, R8, detekt, Lint, checkRawValues, tests)
 
 | Item | Version / value | Where |
 |---|---|---|
-| Gradle | 9.7.1 (wrapper, `distributionSha256Sum` pinned) | `gradle/wrapper/gradle-wrapper.properties` |
-| AGP | 9.3.2 | `libs.versions.toml: agp` |
-| Kotlin | 2.4.10 (+ Compose compiler plugin of the same version) | `kotlin` |
-| KSP | 2.3.10 | `ksp` |
-| JDK | 25 via `jvmToolchain(libs.versions.jdkVersion)` + foojay resolver | `settings.gradle.kts`, `gradle/gradle-daemon-jvm.properties` |
-| compileSdk | 37 (reference: minor API level 1; skeleton: 0 — must exist in the installed SDK) | `compileSdk`, `minorApiLevel` |
+| Gradle | 9.8.2 (wrapper, `distributionSha256Sum` pinned) | `gradle/wrapper/gradle-wrapper.properties` |
+| AGP | 9.5.1 | `libs.versions.toml: agp` |
+| Kotlin | 2.4.21 (+ Compose compiler plugin of the same version) | `kotlin` |
+| KSP | 2.3.13 | `ksp` |
+| JDK | 25 (newest maintained JDK Kotlin can target) via `jvmToolchain(libs.versions.jdkVersion)` + foojay resolver; daemon JVM 25 | `settings.gradle.kts`, `gradle/gradle-daemon-jvm.properties` |
+| compileSdk | 37, `minorApiLevel` 2 (platform `android-37.2`) | `compileSdk`, `minorApiLevel` |
 | targetSdk | 37 | `targetSdk` |
 | minSdk | 28 | `minSdk` |
-| NDK | reference pins `ndkVersion` in every module; the skeleton drops it (no native code) | `ndkVersion` |
-| Compose BOM | 2026.08.00 | `composeBom` |
+| Compose BOM | 2026.09.00 | `composeBom` |
+| Navigation 3 | 1.2.1 (stable) | `nav3Core` |
+| Room 3 / Paging / DataStore | 3.0.3 / 3.5.3 / 1.3.0 | catalog |
+| Hilt / androidx.hilt | 2.60.1 / 1.4.0 | catalog |
+| kotlinx.serialization / coroutines | 1.12.0 / 1.11.0 | catalog |
+| Retrofit | 3.0.0 | catalog |
+| WorkManager (sync add-on) | 2.12.0 | `optional/sync/build.snippet.stub` |
+| detekt | 2.0.0-alpha.6 (no stable 2.x yet; prints a Gradle 9.6+ `Configuration.setVisible` deprecation from its own plugin) | catalog |
+| NDK | not used (the reference pins `ndkVersion` in every module) | — |
 
 Rules:
 - **Every** version, including SDK levels and JDK, lives in `gradle/libs.versions.toml`. The `# Variables` block holds the
@@ -39,7 +76,7 @@ Rules:
 ```toml
 [versions]
 # Room3
-room_version = "3.0.2"
+room_version = "3.0.3"
 
 [libraries]
 # Room3

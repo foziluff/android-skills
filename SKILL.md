@@ -217,6 +217,9 @@ Details: [references/architecture.md](references/architecture.md).
   → [conventions.md](references/conventions.md)
 
 ### Build
+- **Always the latest versions** **[confirmed]** of every library, plugin, Gradle, SDK platform and JDK the toolchain
+  supports — updated together, at project start, at every build change and monthly; breakages are fixed, not pinned around.
+  → [build.md](references/build.md#latest-versions)
 - Versions only in `gradle/libs.versions.toml` (including `compileSdk/minSdk/targetSdk/jdkVersion` under `# Variables`);
   related libraries are grouped into `[bundles]`.
 - Shared module configuration lives in `build-logic` convention plugins (`{appName}.android.library`,
@@ -279,6 +282,8 @@ Details: [references/architecture.md](references/architecture.md).
 
 **Quality** (configured in the skeleton; the reference project has only Lint)
 - [ ] New dependency: official (AndroidX / Google / JetBrains) or a written reason in the catalog comment.
+- [ ] Every catalog entry, the Gradle wrapper and the SDK platform are the latest release; Lint shows no
+  `GradleDependency` / `NewerVersionAvailable` warnings.
 - [ ] `./gradlew detekt lintDebug checkRawValues` — zero findings.
 - [ ] `./gradlew :domain:test testDebugUnitTest` — green.
 - [ ] `./gradlew assembleDebug` — no new warnings (`org.gradle.warning.mode=all`).
@@ -326,6 +331,7 @@ Details: [references/architecture.md](references/architecture.md).
 | Literal `Color(0x…)`, `dp`, `sp` outside `ui/theme` | `checkRawValues` fails the build; tokens are the only design source |
 | Repeating `android {}` / Hilt / Compose setup in module scripts | One convention plugin in `build-logic` |
 | Copying a fake into another module's tests | `testFixtures` of the module that owns the interface |
+| Pinning an old version, skipping an update "for later", downgrading to avoid a migration | Always the latest versions **[confirmed]**; fix the migration in the same change |
 | `Co-Authored-By`/"Generated with" in commits | No traces of AI in git **[confirmed]** |
 
 ---
